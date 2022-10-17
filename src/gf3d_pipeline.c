@@ -136,7 +136,7 @@ int gf3d_pipeline_render_pass_create(VkDevice device,SJson *config,VkRenderPass 
     {
         colorAttachment = gf3d_config_attachment_description(item,gf3d_swapchain_get_format());
         colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = colorAttachment.finalLayout;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//colorAttachment.finalLayout;
     }
     
     item = sj_object_get_value(config,"dependency");
