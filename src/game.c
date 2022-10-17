@@ -29,7 +29,7 @@ int main(int argc,char *argv[])
     int mousex,mousey;
     float mouseFrame = 0;
     World *w;
-    
+    __DEBUG = 1;
     for (a = 1; a < argc;a++)
     {
         if (strcmp(argv[a],"--debug") == 0)
@@ -47,18 +47,13 @@ int main(int argc,char *argv[])
     entity_system_init(1024);
     
     mouse = gf3d_sprite_load("images/pointer.png",32,32, 16);
-    
-    w = world_load("config/testworld.json");
-    
-    for (a = 0; a < 10;a++)
-    {
-        agumon_new(vector3d(a * 10 -50,0,0));
-    }
-    
+        
     slog_sync();
     gf3d_camera_set_scale(vector3d(1,1,1));
-    player_new(vector3d(0,0,20));
-    
+
+
+    shop_init();
+
     // main game loop
     slog("gf3d main loop begin");
     while(!done)
@@ -69,8 +64,10 @@ int main(int argc,char *argv[])
         mouseFrame += 0.01;
         if (mouseFrame >= 16)mouseFrame = 0;
         entity_think_all();
+
         entity_update_all();
-        gf3d_camera_update_view();
+        
+        gf3d_camera_look_at(vector3d(250,200,100), vector3d(0,0,0), vector3d(0,0,1));       
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
 
         // configure render command for graphics command pool
@@ -78,16 +75,14 @@ int main(int argc,char *argv[])
         gf3d_vgraphics_render_start();
 
             //3D draws
-                world_draw(w);
+                shop_draw();
                 entity_draw_all();
             //2D draws
                 gf3d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),(Uint32)mouseFrame);
         gf3d_vgraphics_render_end();
 
         if (gfc_input_command_down("exit"))done = 1; // exit condition
-    }    
-    
-    world_delete(w);
+    }
     
     vkDeviceWaitIdle(gf3d_vgraphics_get_default_logical_device());    
     //cleanup

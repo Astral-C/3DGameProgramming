@@ -184,8 +184,8 @@ void gf3d_obj_load_get_data_from_file(ObjData *obj, FILE* file)
                 file,
                 "%f %f %f",
                 &x,
-                &y,
-                &z
+                &z,
+                &y
               );
             obj->vertices[numvertices].x = x;
             obj->vertices[numvertices].y = y;
