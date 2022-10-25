@@ -2,7 +2,10 @@
 #define __EMPLOYEE_H__
 
 #include "equipment.h"
+#include "entity.h"
 #include <stdint.h>
+
+#define EMPLOYEE_MAX 10
 
 typedef enum {
     Goblin,
@@ -13,13 +16,24 @@ typedef enum {
 } EmployeeType;
 
 typedef struct {
+    Entity* entity;
+    int move_timer;
     uint8_t health, attack, defense, speed;
     uint32_t equipment[EQUIP_SLOT_MAX];
 } EmployeeData;
 
-void GenerateEmployeeData(EmployeeData* data);
+typedef struct {
+    int focused_idx;
+    Entity* focused;
+    EmployeeData employee_slots[EMPLOYEE_MAX];
+} EmployeeManager;
+
+
+void generate_employee_data(EmployeeData* data);
 
 Entity* spawn_employee();
 
+void employee_manager_update();
+void employee_manager_init();
 
 #endif

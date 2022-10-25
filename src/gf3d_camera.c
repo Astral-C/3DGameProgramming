@@ -79,6 +79,10 @@ void gf3d_camera_set_position(Vector3D position)
     gf3d_camera.position.z = -position.z;
 }
 
+Vector3D gf3d_camera_get_position(){
+    return gf3d_camera.position;
+}
+
 void gf3d_camera_set_rotation(Vector3D rotation)
 {
     gf3d_camera.rotation.x = -rotation.x;

@@ -13,7 +13,7 @@ typedef enum {
 typedef enum {
     POISON,
     SLOW,
-    EXPLODE
+    EXPLODE,
     EQUIP_EFFECT_MAX
 } EquipEffect;
 

@@ -16,7 +16,10 @@
 #include "entity.h"
 #include "agumon.h"
 #include "player.h"
+#include "employee.h"
 #include "world.h"
+#include <stdlib.h>
+
 
 extern int __DEBUG;
 
@@ -25,6 +28,8 @@ int main(int argc,char *argv[])
     int done = 0;
     int a;
     
+    srand(0);
+
     Sprite *mouse = NULL;
     int mousex,mousey;
     float mouseFrame = 0;
@@ -44,7 +49,7 @@ int main(int argc,char *argv[])
     gf3d_vgraphics_init("config/setup.cfg");
     slog_sync();
     
-    entity_system_init(1024);
+    entity_system_init(100);
     
     mouse = gf3d_sprite_load("images/pointer.png",32,32, 16);
         
@@ -53,6 +58,10 @@ int main(int argc,char *argv[])
 
 
     shop_init();
+    int lr = 0;
+    int fb = -100;
+
+    employee_manager_init();
 
     // main game loop
     slog("gf3d main loop begin");
@@ -67,8 +76,24 @@ int main(int argc,char *argv[])
 
         entity_update_all();
         
-        gf3d_camera_look_at(vector3d(250,200,100), vector3d(0,0,0), vector3d(0,0,1));       
+//        gf3d_camera_look_at(vector3d(lr, fb, -6), vector3d(lr, fb + 250, 0), vector3d(0,1,0));
+
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
+
+        employee_manager_update();
+
+/*        if(gfc_input_key_down("a")){
+            lr++;
+        } else if(gfc_input_key_down("d")){
+            lr--;
+        } 
+
+        if(gfc_input_key_down("w")){
+            fb++;
+        } else if(gfc_input_key_down("s")){
+            fb--;
+        }
+*/
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
@@ -76,7 +101,7 @@ int main(int argc,char *argv[])
 
             //3D draws
                 shop_draw();
-                entity_draw_all();
+                entity_draw_all_sorted();
             //2D draws
                 gf3d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),(Uint32)mouseFrame);
         gf3d_vgraphics_render_end();

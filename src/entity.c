@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include "gfc_vector.h"
+#include "gf3d_camera.h"
 
 #include "simple_logger.h"
 
@@ -8,11 +10,13 @@
 typedef struct
 {
     Entity *entity_list;
+    Entity **entity_refs; // used for draw calls
     Uint32  entity_count;
     
-}EntityManager;
+} EntityManager;
 
 static EntityManager entity_manager = {0};
+static Vector3D cameraPos = {0};
 
 void entity_system_close()
 {
@@ -28,13 +32,20 @@ void entity_system_close()
 
 void entity_system_init(Uint32 maxEntities)
 {
+    int i;
     entity_manager.entity_list = gfc_allocate_array(sizeof(Entity),maxEntities);
+    entity_manager.entity_refs = gfc_allocate_array(sizeof(Entity*),maxEntities);
     if (entity_manager.entity_list == NULL)
     {
         slog("failed to allocate entity list, cannot allocate ZERO entities");
         return;
     }
     entity_manager.entity_count = maxEntities;
+
+    for(i = 0; i < maxEntities; i++){
+        entity_manager.entity_refs[i] = &entity_manager.entity_list[i];
+    }
+
     atexit(entity_system_close);
     slog("entity_system initialized");
 }
@@ -83,6 +94,26 @@ void entity_draw_all()
             continue;// skip this iteration of the loop
         }
         entity_draw(&entity_manager.entity_list[i]);
+    }
+}
+
+int dist_sort(const Entity** self, const Entity** other){
+    return ((*self)->position.y - cameraPos.y) < ((*other)->position.y - cameraPos.y);
+}
+
+void entity_draw_all_sorted()
+{
+    cameraPos = gf3d_camera_get_position();
+    qsort(entity_manager.entity_refs, entity_manager.entity_count, sizeof(Entity*), dist_sort);
+    
+    int i;
+    for (i = 0; i < entity_manager.entity_count; i++)
+    {
+        if (!(*entity_manager.entity_refs[i])._inuse)// not used yet
+        {
+            continue;// skip this iteration of the loop
+        }
+        entity_draw(entity_manager.entity_refs[i]);
     }
 }
 
