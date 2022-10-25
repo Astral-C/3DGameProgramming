@@ -11,7 +11,10 @@
 #include "gf3d_model.h"
 #include "gf3d_camera.h"
 #include "gf3d_texture.h"
-#include "gf3d_sprite.h"
+#include "gf3d_particle.h"
+
+#include "gf2d_sprite.h"
+#include "gf2d_font.h"
 
 #include "entity.h"
 #include "agumon.h"
@@ -32,6 +35,7 @@ int main(int argc,char *argv[])
 
     Sprite *mouse = NULL;
     int mousex,mousey;
+    //Uint32 then;
     float mouseFrame = 0;
     World *w;
     __DEBUG = 1;
@@ -43,10 +47,12 @@ int main(int argc,char *argv[])
         }
     }
     
-    init_logger("gf3d.log");    
+    init_logger("gf3d.log",0);    
     gfc_input_init("config/input.cfg");
     slog("gf3d begin");
     gf3d_vgraphics_init("config/setup.cfg");
+    gf2d_font_init("config/font.cfg");
+
     slog_sync();
     
     entity_system_init(100);
@@ -68,10 +74,12 @@ int main(int argc,char *argv[])
     while(!done)
     {
         gfc_input_update();
+        gf2d_font_update();
         SDL_GetMouseState(&mousex,&mousey);
         
         mouseFrame += 0.01;
         if (mouseFrame >= 16)mouseFrame = 0;
+        world_run_updates(w);
         entity_think_all();
 
         entity_update_all();
@@ -103,7 +111,8 @@ int main(int argc,char *argv[])
                 shop_draw();
                 entity_draw_all_sorted();
             //2D draws
-                gf3d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),(Uint32)mouseFrame);
+                gf2d_font_draw_line_tag("Press ALT+F4 to exit",FT_H1,gfc_color(1,1,1,1), vector2d(10,10));
+                gf2d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),vector3d(8,8,GFC_PI * mousex / 600.0),gfc_color(0.3,.9,1,0.9),(Uint32)mouseFrame);
         gf3d_vgraphics_render_end();
 
         if (gfc_input_command_down("exit"))done = 1; // exit condition
