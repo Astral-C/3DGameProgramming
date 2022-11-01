@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "__node_handle": "c",
+        "gf3d_camera.h": "c",
+        "employee.h": "c",
+        "gf2d_font.h": "c",
+        "gf3d_particle.h": "c",
+        "entity.h": "c"
+    }
+}

@@ -20,6 +20,7 @@
 #include "entity.h"
 #include "agumon.h"
 #include "player.h"
+#include "shop.h"
 #include "employee.h"
 #include "world.h"
 #include <stdlib.h>
@@ -36,10 +37,9 @@ int main(int argc,char *argv[])
 
     Sprite *mouse = NULL;
     int mousex,mousey;
-    //Uint32 then;
     float mouseFrame = 0;
-    World *w;
     __DEBUG = 1;
+    
     for (a = 1; a < argc;a++)
     {
         if (strcmp(argv[a],"--debug") == 0)
@@ -59,7 +59,7 @@ int main(int argc,char *argv[])
     
     entity_system_init(100);
     
-    mouse = gf3d_sprite_load("images/pointer.png",32,32, 16);
+    mouse = gf2d_sprite_load("images/pointer.png",32,32, 16);
         
     slog_sync();
     gf3d_camera_set_scale(vector3d(1,1,1));
@@ -81,7 +81,6 @@ int main(int argc,char *argv[])
         
         mouseFrame += 0.01;
         if (mouseFrame >= 16)mouseFrame = 0;
-        world_run_updates(w);
         entity_think_all();
 
         entity_update_all();

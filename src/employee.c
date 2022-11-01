@@ -73,7 +73,7 @@ void employee_think(Entity* self){
 Entity* spawn_employee(){
     Entity* employee_ent = entity_new();
 
-    employee_ent->model = gf3d_model_load("cube");
+    employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/cube.png");
     employee_ent->position = vector3d(0,0,0);
     employee_ent->think = employee_think;
 

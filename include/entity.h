@@ -83,6 +83,11 @@ void entity_draw(Entity *self);
 void entity_draw_all();
 
 /**
+ * @brief draw ALL active entities sorted from -z to +z
+ */
+void entity_draw_all_sorted();
+
+/**
  * @brief Call an entity's think function if it exists
  * @param self the entity in question
  */
