@@ -27,6 +27,7 @@
 #include "gfc_matrix.h"
 #include "gfc_text.h"
 
+#include "gf3d_pipeline.h"
 #include "gf3d_texture.h"
 
 typedef struct
@@ -56,7 +57,14 @@ void gf2d_sprite_manager_init(Uint32 max_sprites);
  * @param frames_per_line how many frames across are on the sprite sheet
  * @return NULL on error (check logs) or a pointer to a sprite that can be draw to the 2d overlay
  */
-Sprite * gf2d_sprite_load(char * filename,int frame_width,int frame_height, Uint32 frames_per_line);
+Sprite * gf2d_sprite_load(const char * filename,int frame_width,int frame_height, Uint32 frames_per_line);
+
+/**
+ * @brief loads a flat image into memory
+ * @param filename the name of the file containing the image data
+ * @return NULL on error (check logs) or a pointer to a sprite that can be draw to the 2d overlay
+ */
+Sprite * gf2d_sprite_load_image(const char * filename);
 
 /**
  * @brief create a sprite from an SDL_Surface
@@ -96,6 +104,16 @@ Pipeline *gf2d_sprite_get_pipeline();
 VkVertexInputBindingDescription * gf2d_sprite_get_bind_description();
 
 VkVertexInputAttributeDescription * gf2d_sprite_get_attribute_descriptions(Uint32 *count);
+
+/**
+ * @brief needs to be called once at the beginning of each render frame
+ */
+void gf3d_sprite_reset_pipes();
+
+/**
+ * @brief called to submit all draw commands to the sprite pipelines
+ */
+void gf3d_sprite_submit_pipe_commands();
 
 
 #endif

@@ -208,72 +208,15 @@ int gf3d_pipelin_depth_stencil_create_info_from_json(SJson *json,VkPipelineDepth
     return 1;
 }
 
-void gf3d_pipeline_sprite_render_pass_setup(Pipeline *pipe)
-{
-    VkAttachmentDescription colorAttachment = {0};
-    VkAttachmentReference colorAttachmentRef = {0};
-    VkSubpassDescription subpass = {0};
-    VkRenderPassCreateInfo renderPassInfo = {0};
-    VkSubpassDependency dependency = {0};
-    VkAttachmentDescription depthAttachment = {0};
-    VkAttachmentReference depthAttachmentRef = {0};
-    VkAttachmentDescription attachments[2];
-    
-    depthAttachmentRef.attachment = 1;
-    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    
-    depthAttachment.format = gf3d_pipeline_find_depth_format();
-    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-    colorAttachment.format = gf3d_swapchain_get_format();
-    colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    colorAttachment.initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-    
-    colorAttachmentRef.attachment = 0;
-    colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.colorAttachmentCount = 1;
-    subpass.pColorAttachments = &colorAttachmentRef;
-    subpass.pDepthStencilAttachment = &depthAttachmentRef;
-    
-    memcpy(&attachments[0],&colorAttachment,sizeof(VkAttachmentDescription));
-    memcpy(&attachments[1],&depthAttachment,sizeof(VkAttachmentDescription));
-    
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 2;
-    renderPassInfo.pAttachments = attachments;
-    renderPassInfo.subpassCount = 1;
-    renderPassInfo.pSubpasses = &subpass;
-    renderPassInfo.dependencyCount = 1;
-    renderPassInfo.pDependencies = &dependency;
-
-    if (vkCreateRenderPass(pipe->device, &renderPassInfo, NULL, &pipe->renderPass) != VK_SUCCESS)
-    {
-        slog("failed to create render pass!");
-        return;
-    }
-}
-
-Pipeline *gf3d_pipeline_create_from_config(VkDevice device,const char *configFile,VkExtent2D extent,Uint32 descriptorCount)
+Pipeline *gf3d_pipeline_create_from_config(
+    VkDevice device,
+    const char *configFile,
+    VkExtent2D extent,
+    Uint32 descriptorCount,
+    const VkVertexInputBindingDescription* vertexInputDescription,
+    const VkVertexInputAttributeDescription * vertextInputAttributeDescriptions,
+    Uint32 vertexAttributeCount,
+    VkDeviceSize bufferSize)
 {
     SJson *config,*file, *item;
     const char *str;
@@ -555,7 +498,6 @@ void gf3d_pipeline_create_basic_model_descriptor_pool(Pipeline *pipe)
         slog("no pipeline provided");
         return;
     }
-    slog("attempting to make %i descriptor pools of size %i",gf3d_pipeline.chainLength,pipe->descriptorSetCount);
     poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSize[0].descriptorCount = pipe->descriptorSetCount;
     poolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -588,6 +530,13 @@ void gf3d_pipeline_reset_frame(Pipeline *pipe,Uint32 frame)
         return;
     }
     pipe->descriptorCursor[frame] = 0;
+    pipe->commandBuffer = gf3d_command_rendering_begin(frame,pipe);
+}
+
+void gf3d_pipeline_submit_commands(Pipeline *pipe)
+{
+    if (!pipe)return;
+    gf3d_command_rendering_end(pipe->commandBuffer);
 }
 
 void gf3d_pipeline_create_descriptor_sets(Pipeline *pipe)

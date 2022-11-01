@@ -12,6 +12,6 @@ void shop_init(){
 
 void shop_draw(){
     //gf3d_model_draw(shop.walls,shop.mat);
-    gf3d_model_draw(shop.floor,shop.mat);
+    gf3d_model_draw(shop.floor,shop.mat, vector4d(1,1,1,0), vector4d(1,1,1,0));
     //gf3d_model_draw(shop.molding,shop.mat);
 }

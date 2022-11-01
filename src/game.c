@@ -15,6 +15,7 @@
 
 #include "gf2d_sprite.h"
 #include "gf2d_font.h"
+#include "gf2d_draw.h"
 
 #include "entity.h"
 #include "agumon.h"
@@ -52,7 +53,8 @@ int main(int argc,char *argv[])
     slog("gf3d begin");
     gf3d_vgraphics_init("config/setup.cfg");
     gf2d_font_init("config/font.cfg");
-
+    gf2d_draw_manager_init(1000);
+    
     slog_sync();
     
     entity_system_init(100);
@@ -111,8 +113,12 @@ int main(int argc,char *argv[])
                 shop_draw();
                 entity_draw_all_sorted();
             //2D draws
+                gf2d_draw_rect_filled(gfc_rect(10 ,10,1000,32),gfc_color8(128,128,128,255));
                 gf2d_font_draw_line_tag("Press ALT+F4 to exit",FT_H1,gfc_color(1,1,1,1), vector2d(10,10));
-                gf2d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),vector3d(8,8,GFC_PI * mousex / 600.0),gfc_color(0.3,.9,1,0.9),(Uint32)mouseFrame);
+                
+                gf2d_draw_rect(gfc_rect(10 ,10,1000,32),gfc_color8(255,255,255,255));
+                
+                gf2d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),vector3d(8,8,0),gfc_color(0.3,.9,1,0.9),(Uint32)mouseFrame);
         gf3d_vgraphics_render_end();
 
         if (gfc_input_command_down("exit"))done = 1; // exit condition

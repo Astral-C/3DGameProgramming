@@ -60,7 +60,7 @@ void gf3d_model_manager_init(Uint32 max_models);
 Model * gf3d_model_new();
 
 /**
- * @brief load a model and texture from file where both the model is in models/<filename>.obj and the
+ * @brief load a model and texture from a config file that describe where the mesh data and texture data can be found
  * texture is in images><filename>,png
  * @param filename the common filename to load by
  * @return NULL on error, or the loaded model data otherwise
@@ -98,6 +98,14 @@ void gf3d_model_draw(Model *model,Matrix4 modelMat,Vector4D colorMod,Vector4D am
  * @param highlightColor the color of the outline
  */
 void gf3d_model_draw_highlight(Model *model,Matrix4 modelMat,Vector4D highlight);
+
+/**
+ * @brief queue up a model for rendering as a sky
+ * @param model the model to render
+ * @param modelMat the model matrix (MVP)
+ * @param color the color adjustement (gfc_color(1,1,1,1) for no color change
+ */
+void gf3d_model_draw_sky(Model *model,Matrix4 modelMat,Color color);
 
 /**
  * @brief free a model

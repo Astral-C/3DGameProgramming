@@ -29,6 +29,14 @@ typedef struct
 
 typedef struct
 {
+    Matrix4 model;
+    Matrix4 view;
+    Matrix4 proj;
+    Vector4D color; 
+}SkyUBO;
+
+typedef struct
+{
     Vector3D vertex;
     Vector3D normal;
     Vector2D texel;
@@ -84,6 +92,23 @@ VkVertexInputBindingDescription * gf3d_mesh_get_bind_description();
  */
 void gf3d_mesh_free(Mesh *mesh);
 
+/**
+ * @brief needs to be called once at the beginning of each render frame
+ */
+void gf3d_mesh_reset_pipes();
+
+/**
+ * @brief called to submit all draw commands to the mesh pipelines
+ */
+void gf3d_mesh_submit_pipe_commands();
+
+/**
+ * @brief get the current command buffer for the mesh system
+ */
+VkCommandBuffer gf3d_mesh_get_model_command_buffer();
+VkCommandBuffer gf3d_mesh_get_highlight_command_buffer();
+VkCommandBuffer gf3d_mesh_get_sky_command_buffer();
+
 
 /**
  * @brief adds a mesh to the render pass
@@ -101,6 +126,7 @@ void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet 
  */
 void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
 void gf3d_mesh_render_highlight(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
+void gf3d_mesh_render_sky(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
 
 /**
  * @brief create a mesh's internal buffers based on vertices
@@ -118,5 +144,6 @@ void gf3d_mesh_create_vertex_buffer_from_vertices(Mesh *mesh,Vertex *vertices,Ui
  */
 Pipeline *gf3d_mesh_get_pipeline();
 Pipeline *gf3d_mesh_get_highlight_pipeline();
+Pipeline *gf3d_mesh_get_sky_pipeline();
 
 #endif

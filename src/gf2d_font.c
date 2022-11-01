@@ -35,7 +35,8 @@ void gf2d_fonts_load_json(const char *filename);
 
 void gf2d_font_close()
 {
-    int i;
+    int i,c;
+    FontImage *image;
     for (i = 0;i < font_manager.font_max;i++)
     {
         if (font_manager.font_list[i].font != NULL)
@@ -43,10 +44,24 @@ void gf2d_font_close()
             TTF_CloseFont(font_manager.font_list[i].font);
         }
     }
-    gfc_list_foreach(font_manager.font_images,free);
+    c = gfc_list_get_count(font_manager.font_images);
+    for (i= 0; i < c; i++)
+    {
+        image = gfc_list_get_nth(font_manager.font_images,i);
+        if (!image)continue;
+        gf2d_sprite_free(image->image);
+        free(image);
+    }
     gfc_list_delete(font_manager.font_images);
     TTF_Quit();
     slog("text system closed");
+}
+
+void gf2d_font_image_free(FontImage *image)
+{
+    if (!image)return;
+    gf2d_sprite_free(image->image);
+    free(image);
 }
 
 void gf2d_font_image_new(
@@ -97,7 +112,7 @@ void gf2d_font_init(const char *configFile)
     }
     gf2d_fonts_load_json(configFile);
     font_manager.font_images = gfc_list_new();
-    font_manager.ttl = 100;// 100 milliseconds
+    font_manager.ttl = 1000;// 1000 milliseconds
     slog("text system initialized");
     atexit(gf2d_font_close);
 }
@@ -112,7 +127,8 @@ void gf2d_font_update()
         image = gfc_list_get_nth(font_manager.font_images,i);
         if (!image)continue;
         if ((now - image->last_used) < font_manager.ttl)continue;
-        free(image);
+        gfc_list_delete_data(font_manager.font_images,image);
+        gf2d_font_image_free(image);        
         i--;
     }
 }

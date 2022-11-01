@@ -20,6 +20,7 @@ typedef struct
     Vector2D position;
     Vector2D scale;
     Vector2D frame_offset;
+    float drawOrder;
 }SpriteUBO;
 
 typedef struct
@@ -44,6 +45,7 @@ typedef struct
     VkDeviceMemory  faceBufferMemory; /**<memory habdle for tge face memory*/
     VkVertexInputAttributeDescription   attributeDescriptions[SPRITE_ATTRIBUTE_COUNT];
     VkVertexInputBindingDescription     bindingDescription;
+    float           drawOrder;
 }SpriteManager;
 
 void gf2d_sprite_update_basic_descriptor_set(
@@ -145,7 +147,21 @@ void gf2d_sprite_manager_init(Uint32 max_sprites)
     atexit(gf2d_sprite_manager_close);
 }
 
-Sprite *gf2d_sprite_get_by_filename(char *filename)
+void gf3d_sprite_reset_pipes()
+{
+    Uint32 bufferFrame = gf3d_vgraphics_get_current_buffer_frame();
+    
+    gf3d_pipeline_reset_frame(gf2d_sprite.pipe,bufferFrame);
+    gf2d_sprite.drawOrder = 0;
+}
+
+void gf3d_sprite_submit_pipe_commands()
+{
+    gf3d_pipeline_submit_commands(gf2d_sprite.pipe);
+}
+
+
+Sprite *gf2d_sprite_get_by_filename(const char *filename)
 {
     int i;
     for (i = 0; i < gf2d_sprite.max_sprites; i++)
@@ -201,8 +217,12 @@ Sprite * gf2d_sprite_from_surface(SDL_Surface *surface,int frame_width,int frame
     return sprite;
 }
 
+Sprite * gf2d_sprite_load_image(const char * filename)
+{
+    return gf2d_sprite_load(filename,0,0, 1);
+}
 
-Sprite * gf2d_sprite_load(char * filename,int frame_width,int frame_height, Uint32 frames_per_line)
+Sprite * gf2d_sprite_load(const char * filename,int frame_width,int frame_height, Uint32 frames_per_line)
 {
     Sprite *sprite;
     sprite = gf2d_sprite_get_by_filename(filename);
@@ -248,12 +268,10 @@ void gf2d_sprite_delete(Sprite *sprite)
     if (sprite->buffer != VK_NULL_HANDLE)
     {
         vkDestroyBuffer(gf2d_sprite.device, sprite->buffer, NULL);
-        slog("sprite %s vert buffer freed",sprite->filename);
     }
     if (sprite->bufferMemory != VK_NULL_HANDLE)
     {
         vkFreeMemory(gf2d_sprite.device, sprite->bufferMemory, NULL);
-        slog("sprite %s vert buffer memory freed",sprite->filename);
     }
 
     gf3d_texture_free(sprite->texture);
@@ -293,7 +311,7 @@ void gf2d_sprite_draw(Sprite *sprite,Vector2D position,Vector2D scale,Vector3D r
         return;
     }
     
-    commandBuffer = gf3d_vgraphics_get_current_command_overlay_buffer();
+    commandBuffer = gf2d_sprite.pipe->commandBuffer;
     buffer_frame = gf3d_vgraphics_get_current_buffer_frame();
 
     descriptorSet = gf3d_pipeline_get_descriptor_set(gf2d_sprite.pipe, buffer_frame);
@@ -320,7 +338,6 @@ void gf2d_sprite_create_vertex_buffer(Sprite *sprite)
     void *data = NULL;
     VkDevice device = gf2d_sprite.device;
     size_t bufferSize;
-    VkExtent2D extent = gf3d_vgraphics_get_view_extent();
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     SpriteVertex vertices[] = {
@@ -329,15 +346,15 @@ void gf2d_sprite_create_vertex_buffer(Sprite *sprite)
             {0,0}
         },
         {
-            {sprite->frameWidth/(float)extent.width,0},
+            {sprite->frameWidth,0},
             {sprite->frameWidth/(float)sprite->texture->width,0}
         },
         {
-            {0,sprite->frameHeight/(float)extent.height},
+            {0,sprite->frameHeight},
             {0,sprite->frameHeight/(float)sprite->texture->height}
         },
         {
-            {sprite->frameWidth/(float)extent.width,sprite->frameHeight/(float)extent.height},
+            {sprite->frameWidth,sprite->frameHeight},
             {sprite->frameWidth/(float)sprite->texture->width,sprite->frameHeight/(float)sprite->texture->height}
         }
     };
@@ -375,15 +392,13 @@ void gf2d_sprite_update_uniform_buffer(
     spriteUBO.scale = scale;
     gfc_matrix_identity(spriteUBO.rotation);
     spriteUBO.rotation[0][0] = cos(rotation.z);
-    spriteUBO.rotation[0][1] = sin(rotation.z) * -1;
-    spriteUBO.rotation[1][0] = sin(rotation.z);
+    spriteUBO.rotation[0][1] = sin(rotation.z);
+    spriteUBO.rotation[1][0] = sin(rotation.z) * -1;//clockwise rotation
     spriteUBO.rotation[1][1] = cos(rotation.z);
-
+    spriteUBO.drawOrder = gf2d_sprite.drawOrder;
+    gf2d_sprite.drawOrder += 0.000000001;
     spriteUBO.frame_offset.x = (frame%sprite->framesPerLine * sprite->frameWidth)/(float)sprite->texture->width;
     spriteUBO.frame_offset.y = (frame/sprite->framesPerLine * sprite->frameHeight)/(float)sprite->texture->height;
-
-    slog("rotation: %f",rotation.z);
-    gfc_matrix4_slog(spriteUBO.rotation);
     
     vkMapMemory(gf2d_sprite.device, ubo->uniformBufferMemory, 0, sizeof(SpriteUBO), 0, &data);
     
