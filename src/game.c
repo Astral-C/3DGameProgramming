@@ -111,6 +111,8 @@ int main(int argc,char *argv[])
             //3D draws
                 shop_draw();
                 entity_draw_all_sorted();
+
+                employee_manager_draw();
             //2D draws
                 gf2d_draw_rect_filled(gfc_rect(10 ,10,1000,32),gfc_color8(128,128,128,255));
                 gf2d_font_draw_line_tag("Press ALT+F4 to exit",FT_H1,gfc_color(1,1,1,1), vector2d(10,10));

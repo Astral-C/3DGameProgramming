@@ -75,7 +75,7 @@ void gf3d_mesh_init(Uint32 mesh_max)
         sizeof(MeshUBO)
     );
 
-    gf3d_mesh.sky_pipe = gf3d_pipeline_create_from_config(
+    /*gf3d_mesh.sky_pipe = gf3d_pipeline_create_from_config(
         gf3d_vgraphics_get_default_logical_device(),
         "config/sky_pipeline.cfg",
         gf3d_vgraphics_get_view_extent(),
@@ -84,9 +84,9 @@ void gf3d_mesh_init(Uint32 mesh_max)
         gf3d_mesh_get_attribute_descriptions(NULL),
         count,
         sizeof(SkyUBO)
-    );
+    );*/
 
-        gf3d_mesh.highlight_pipe = gf3d_pipeline_create_from_config(
+    /*gf3d_mesh.highlight_pipe = gf3d_pipeline_create_from_config(
         gf3d_vgraphics_get_default_logical_device(),
         "config/highlight_pipeline.cfg",
         gf3d_vgraphics_get_view_extent(),
@@ -95,7 +95,7 @@ void gf3d_mesh_init(Uint32 mesh_max)
         gf3d_mesh_get_attribute_descriptions(NULL),
         count,
         sizeof(HighlightUBO)
-    );
+    );*/
 
     slog("mesh system initialized");
 }
@@ -119,16 +119,16 @@ void gf3d_mesh_reset_pipes()
 {
     Uint32 bufferFrame = gf3d_vgraphics_get_current_buffer_frame();
     
-    gf3d_pipeline_reset_frame(gf3d_mesh.sky_pipe,bufferFrame);
+    //gf3d_pipeline_reset_frame(gf3d_mesh.sky_pipe,bufferFrame);
     gf3d_pipeline_reset_frame(gf3d_mesh.pipe,bufferFrame);
-    gf3d_pipeline_reset_frame(gf3d_mesh.highlight_pipe,bufferFrame);
+    //gf3d_pipeline_reset_frame(gf3d_mesh.highlight_pipe,bufferFrame);
 }
 
 void gf3d_mesh_submit_pipe_commands()
 {
-    gf3d_pipeline_submit_commands(gf3d_mesh.sky_pipe);
+    //gf3d_pipeline_submit_commands(gf3d_mesh.sky_pipe);
     gf3d_pipeline_submit_commands(gf3d_mesh.pipe);
-    gf3d_pipeline_submit_commands(gf3d_mesh.highlight_pipe);
+    //gf3d_pipeline_submit_commands(gf3d_mesh.highlight_pipe);
 }
 
 VkCommandBuffer gf3d_mesh_get_model_command_buffer()

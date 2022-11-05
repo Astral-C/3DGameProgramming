@@ -12,10 +12,12 @@ typedef enum {
     Knight,
     Ghost,
     Elf,
-    CatPerson
+    CatPerson,
+    EMPLOYEE_TYPES
 } EmployeeType;
 
 typedef struct {
+    EmployeeType type;
     Entity* entity;
     int move_timer;
     uint8_t health, attack, defense, speed;
@@ -35,5 +37,6 @@ Entity* spawn_employee();
 
 void employee_manager_update();
 void employee_manager_init();
+void employee_manager_draw();
 
 #endif
