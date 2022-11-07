@@ -6,7 +6,9 @@
                 "${default}",
                 "${workspaceFolder}/gfc/include",
                 "${workspaceFolder}/include",
-                "/usr/include/SDL2"
+                "/usr/include/SDL2",
+                "${workspaceFolder}/gfc/simple_json/include",
+                "${workspaceFolder}/gfc/simple_logger/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

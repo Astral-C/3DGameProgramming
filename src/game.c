@@ -20,7 +20,6 @@
 #include "entity.h"
 #include "agumon.h"
 #include "player.h"
-#include "shop.h"
 #include "employee.h"
 #include "world.h"
 #include <stdlib.h>
@@ -65,9 +64,7 @@ int main(int argc,char *argv[])
     gf3d_camera_set_scale(vector3d(1,1,1));
 
 
-    shop_init();
-    int lr = 0;
-    int fb = -100;
+    world_init();
 
     employee_manager_init();
 
@@ -84,40 +81,21 @@ int main(int argc,char *argv[])
         entity_think_all();
 
         entity_update_all();
-        
-//        gf3d_camera_look_at(vector3d(lr, fb, -6), vector3d(lr, fb + 250, 0), vector3d(0,1,0));
 
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
 
         employee_manager_update();
-
-/*        if(gfc_input_key_down("a")){
-            lr++;
-        } else if(gfc_input_key_down("d")){
-            lr--;
-        } 
-
-        if(gfc_input_key_down("w")){
-            fb++;
-        } else if(gfc_input_key_down("s")){
-            fb--;
-        }
-*/
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
         gf3d_vgraphics_render_start();
 
             //3D draws
-                shop_draw();
+                world_draw();
                 entity_draw_all_sorted();
 
                 employee_manager_draw();
             //2D draws
-                gf2d_draw_rect_filled(gfc_rect(10 ,10,1000,32),gfc_color8(128,128,128,255));
-                gf2d_font_draw_line_tag("Press ALT+F4 to exit",FT_H1,gfc_color(1,1,1,1), vector2d(10,10));
-                
-                gf2d_draw_rect(gfc_rect(10 ,10,1000,32),gfc_color8(255,255,255,255));
                 
                 gf2d_sprite_draw(mouse,vector2d(mousex,mousey),vector2d(2,2),vector3d(8,8,0),gfc_color(0.3,.9,1,0.9),(Uint32)mouseFrame);
         gf3d_vgraphics_render_end();

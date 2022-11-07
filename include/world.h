@@ -1,37 +1,38 @@
-#ifndef __WORLD_H__
-#define __WORLD_H__
-
-
-#include "gfc_types.h"
-#include "gfc_list.h"
-#include "gfc_color.h"
-#include "gfc_matrix.h"
-
-#include "gf3d_vgraphics.h"
+#ifndef __SHOP_H__
+#define __SHOP_H__
+#include "entity.h"
 #include "gf3d_model.h"
 
-#include "entity.h"
+typedef enum {
+    MINT_TEA_LEAVES,
+    INFINITE_SALT_SHAKER,
+    SAUL_GOODMAN,
+    MONEY_PRINTER,
+    //more????
+} ResourceType;
 
-typedef struct
-{
-    Matrix4 modelMat;
-    Vector3D position;
-    Vector3D rotation;
-    Vector3D scale;
-    Model *model;
-    Color color;
-    List *spawnList;        //entities to spawn
-    List *entityList;       //entities that exist in the world
-}World;
+typedef enum {
+    WATER,
+    FIRE,
+    EARTH
+} DungeonType;
 
-World *world_load(char *filename);
+typedef struct {
+    int cash;
+    int fees;
+    int fee_timer;
+    Model* floor;
+    Matrix4 mat;
+} ShopManager;
 
-void world_draw(World *world);
+typedef struct {
+    DungeonType type;
+    Vector4D color;
+    Model* floor;
+} DungeonManager;
 
-void world_delete(World *world);
-
-void world_run_updates(World *world);
-
-void world_add_entity(World *world,Entity *entity);
+void world_update();
+void world_init();
+void world_draw();
 
 #endif

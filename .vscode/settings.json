@@ -5,6 +5,10 @@
         "employee.h": "c",
         "gf2d_font.h": "c",
         "gf3d_particle.h": "c",
-        "entity.h": "c"
+        "entity.h": "c",
+        "gf3d_model.h": "c",
+        "sdl.h": "c",
+        "simple_logger.h": "c",
+        "shop.h": "c"
     }
 }
