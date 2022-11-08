@@ -2,6 +2,9 @@
 #define __EQUIPMENT_H__
 
 #include "gfc_types.h"
+#include "gfc_text.h"
+#include "gf3d_texture.h"
+#include "entity.h"
 
 typedef enum {
     EQUIP_HEAD,
@@ -29,8 +32,14 @@ typedef struct {
     EquipSlot slot;
     EquipEffect effect_on_hit;
     EquipStats boost_stat;
-    char name[32];
+    TextWord name;
+    Texture* texture;
 } EquipmentDef;
+
+extern EquipmentDef Equipment[6];
+
+Entity* spawn_random_equipment();
+void load_equipment_textures();
 
 // load equip defs from json?
 

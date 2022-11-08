@@ -18,14 +18,14 @@ typedef enum {
 
 typedef struct {
     EmployeeType type;
-    Entity* entity;
+    Entity* entity, *target;
     int move_timer;
-    uint8_t health, attack, defense, speed;
+    uint8_t health, attack, defense, speed, in_dungeon;
     uint32_t equipment[EQUIP_SLOT_MAX];
 } EmployeeData;
 
 typedef struct {
-    int focused_idx;
+    int focused_idx, passive_effect_timer;
     Entity* focused;
     EmployeeData employee_slots[EMPLOYEE_MAX];
 } EmployeeManager;
@@ -38,5 +38,7 @@ Entity* spawn_employee();
 void employee_manager_update();
 void employee_manager_init();
 void employee_manager_draw();
+
+extern EmployeeManager Employees;
 
 #endif

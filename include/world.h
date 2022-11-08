@@ -4,35 +4,55 @@
 #include "gf3d_model.h"
 
 typedef enum {
-    MINT_TEA_LEAVES,
-    INFINITE_SALT_SHAKER,
-    SAUL_GOODMAN,
-    MONEY_PRINTER,
+    LAWYERS,
+    COMFORT,
+    MONEY_PRINTERS,
+    SPEEDY_SERVICE,
+    SMILY_SERVICE,
+    LUCKY_DAYS,
+    DOWNTIME_REDUCER,
+    STRONK_JUICE,
+    DEFENSE_JUICE,
+    ZE_HEALING,
+    UPGRADES_MAX
     //more????
-} ResourceType;
+} ShopUpgrades;
 
 typedef enum {
     WATER,
     FIRE,
-    EARTH
+    EARTH,
+    DUNGEON_TYPE_MAX
 } DungeonType;
+
+extern Vector4D TypeColors[3];
 
 typedef struct {
     int cash;
+    int served;
     int fees;
     int fee_timer;
     Model* floor;
     Matrix4 mat;
+    uint8_t upgrades[UPGRADES_MAX];
 } ShopManager;
 
 typedef struct {
     DungeonType type;
-    Vector4D color;
     Model* floor;
+    Matrix4 mat;
+    Entity* items[15];
 } DungeonManager;
 
 void world_update();
 void world_init();
 void world_draw();
+void shop_manager_add_cash(int amount);
+
+extern ShopManager shop;
+
+DungeonType GetCurrentDungeonType();
+
+void RandomizeDungeon();
 
 #endif

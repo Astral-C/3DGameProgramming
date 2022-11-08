@@ -21,9 +21,10 @@
 #include "agumon.h"
 #include "player.h"
 #include "employee.h"
+#include "customer.h"
 #include "world.h"
 #include <stdlib.h>
-
+#include <time.h>
 
 extern int __DEBUG;
 
@@ -32,7 +33,7 @@ int main(int argc,char *argv[])
     int done = 0;
     int a;
     
-    srand(0);
+    srand(time(NULL));
 
     Sprite *mouse = NULL;
     int mousex,mousey;
@@ -52,11 +53,14 @@ int main(int argc,char *argv[])
     slog("gf3d begin");
     gf3d_vgraphics_init("config/setup.cfg");
     gf2d_font_init("config/font.cfg");
-    gf2d_draw_manager_init(1000);
+    gf2d_draw_manager_init(500);
     
     slog_sync();
+
+    load_equipment_textures();
+    load_customer_textures();
     
-    entity_system_init(100);
+    entity_system_init(200);
     
     mouse = gf2d_sprite_load("images/pointer.png",32,32, 16);
         
@@ -66,6 +70,7 @@ int main(int argc,char *argv[])
 
     world_init();
 
+    customer_manager_init();
     employee_manager_init();
 
     // main game loop
@@ -85,6 +90,10 @@ int main(int argc,char *argv[])
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
 
         employee_manager_update();
+
+        customer_manager_update();
+
+        world_update();
 
         // configure render command for graphics command pool
         // for each mesh, get a command and configure it from the pool
