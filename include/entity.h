@@ -65,6 +65,12 @@ void entity_system_init(Uint32 maxEntities);
 Entity *entity_new();
 
 /**
+ * @brief provide a pointer to a new empty entity
+ * @return NULL on error or a valid entity pointer otherwise
+ */
+Entity *entity_new_at(Vector3D spawn_pos);
+
+/**
  * @brief free a previously created entity from memory
  * @param self the entity in question
  */

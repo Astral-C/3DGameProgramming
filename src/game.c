@@ -89,9 +89,9 @@ int main(int argc,char *argv[])
 
         gf3d_camera_get_view_mat4(gf3d_vgraphics_get_view_matrix());
 
+        customer_manager_update();
         employee_manager_update();
 
-        customer_manager_update();
 
         world_update();
 

@@ -58,20 +58,23 @@ void generate_employee_data(EmployeeData* data){
 
 void employee_think(Entity* self){
     if(self != Employees.focused){
-        if(((EmployeeData*)self->customData)->target != NULL && vector3d_magnitude_between(self->position, ((EmployeeData*)self->customData)->target->position) < 5){
-            CustomerData* customer = (CustomerData*)((EmployeeData*)self->customData)->target->customData;
-            gf3d_model_free(customer->entity->model);
-            entity_free(customer->entity);
+        if(((EmployeeData*)self->customData)->target != NULL){
+            self->velocity.x = (((EmployeeData*)self->customData)->target->position.x - self->position.x) * 0.01 * (shop.upgrades[SPEEDY_SERVICE] + 1);
+            self->velocity.y = (((EmployeeData*)self->customData)->target->position.y - self->position.y) * 0.01 * (shop.upgrades[SPEEDY_SERVICE] + 1);
+            if(vector3d_magnitude_between(self->position, ((EmployeeData*)self->customData)->target->position) < 7){
+                CustomerData* customer = (CustomerData*)((EmployeeData*)self->customData)->target->customData;
+                entity_free(customer->entity);
 
-            customer->entity = NULL;
-            customer->targeter = NULL;
-            customer->want_type = EMPLOYEE_TYPES;
+                customer->entity = NULL;
+                customer->targeter = NULL;
+                customer->want_type = EMPLOYEE_TYPES;
 
-            shop_manager_add_cash(customer->payout);
+                shop_manager_add_cash(customer->payout);
 
-
-            ((EmployeeData*)self->customData)->target = NULL;
+                ((EmployeeData*)self->customData)->target = NULL;
+            }
         } else {    
+            ((EmployeeData*)self->customData)->move_timer--;
             if(((EmployeeData*)self->customData)->move_timer <= 0){
                 self->velocity.x = fmod((float)drand48(), 0.095) - 0.0475;
                 self->velocity.y = fmod((float)drand48(), 0.095) - 0.0475;
@@ -79,18 +82,16 @@ void employee_think(Entity* self){
                 //check if any customers are looking for us
                 if(((EmployeeData*)self->customData)->target == NULL){
                     for (size_t i = 0; i < CUSTOMER_MAX; i++){
-                        if(Customers.customer_slots[i].want_type == ((EmployeeData*)self->customData)->type && Customers.customer_slots[i].targeter == NULL && Customers.customer_slots[i].entity != NULL){
+                        if(Customers.customer_slots[i].targeter == NULL && Customers.customer_slots[i].entity != NULL){
                             ((EmployeeData*)self->customData)->target = Customers.customer_slots[i].entity;
                             Customers.customer_slots[i].targeter = self;
-                            self->velocity.x = (((EmployeeData*)self->customData)->target->position.x - self->velocity.x) * 0.01 * (shop.upgrades[SPEEDY_SERVICE] + 1);
-                            self->velocity.y = (((EmployeeData*)self->customData)->target->position.y - self->velocity.y) * 0.01 * (shop.upgrades[SPEEDY_SERVICE] + 1);
+                            self->velocity.x = (((EmployeeData*)self->customData)->target->position.x - self->position.x) * 0.005 * (shop.upgrades[SPEEDY_SERVICE] + 1);
+                            self->velocity.y = (((EmployeeData*)self->customData)->target->position.y - self->position.y) * 0.005 * (shop.upgrades[SPEEDY_SERVICE] + 1);
                             break;
                         }
                     }
                 }
                 //self->velocity.y = 0.005;
-            } else {
-                ((EmployeeData*)self->customData)->move_timer--;
             }
         }
         

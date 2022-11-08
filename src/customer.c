@@ -40,7 +40,6 @@ void customer_think(Entity* self){
     
     customer->leave_timer--;
     if(customer->leave_timer <= 0){
-        gf3d_model_free(self->model);
         entity_free(self);
         customer->entity = NULL;
         if(customer->targeter != NULL){ 
@@ -69,8 +68,7 @@ void customer_manager_update(){
 }
 
 Entity* spawn_customer(){
-    Entity* customer = entity_new();
-    customer->position = vector3d(((rand() % 70) - 35), (rand() % 100) - 50, 0);
+    Entity* customer = entity_new_at(vector3d(((rand() % 70) - 35), (rand() % 100) - 50, 0));
 
     customer->think = customer_think;
 

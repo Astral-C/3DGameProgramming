@@ -73,6 +73,34 @@ Entity *entity_new()
     return NULL;
 }
 
+Entity *entity_new_at(Vector3D spawn_pos)
+{
+    int i;
+    for (i = 0; i < entity_manager.entity_count; i++)
+    {
+        if (!entity_manager.entity_list[i]._inuse)// not used yet, so we can!
+        {
+            entity_manager.entity_list[i]._inuse = 1;
+            gfc_matrix_identity(entity_manager.entity_list[i].modelMat);
+            entity_manager.entity_list[i].scale.x = 1;
+            entity_manager.entity_list[i].scale.y = 1;
+            entity_manager.entity_list[i].scale.z = 1;
+
+            entity_manager.entity_list[i].position.x = spawn_pos.x;
+            entity_manager.entity_list[i].position.y = spawn_pos.y;
+            entity_manager.entity_list[i].position.z = spawn_pos.z;
+            gfc_matrix_translate(entity_manager.entity_list[i].modelMat, spawn_pos);
+            
+            entity_manager.entity_list[i].color = gfc_color(1,1,1,1);
+            entity_manager.entity_list[i].selectedColor = gfc_color(1,1,1,1);
+            
+            return &entity_manager.entity_list[i];
+        }
+    }
+    slog("entity_new: no free space in the entity list");
+    return NULL;   
+}
+
 void entity_free(Entity *self)
 {
     if (!self)return;
