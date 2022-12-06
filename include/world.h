@@ -35,6 +35,8 @@ typedef struct {
     Model* floor;
     Matrix4 mat;
     uint8_t upgrades[UPGRADES_MAX];
+    
+    Box collision;
 } ShopManager;
 
 typedef struct {
@@ -42,6 +44,10 @@ typedef struct {
     Model* floor;
     Matrix4 mat;
     Entity* items[15];
+    Entity* hazards[15];
+    
+    int walkable_count;
+    Box* walkable;
 } DungeonManager;
 
 void world_update();

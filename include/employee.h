@@ -8,7 +8,7 @@
 #define EMPLOYEE_MAX 10
 
 typedef enum {
-    Goblin,
+    Witch,
     Knight,
     Ghost,
     Elf,

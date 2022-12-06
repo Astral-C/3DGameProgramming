@@ -9,6 +9,11 @@
         "gf3d_model.h": "c",
         "sdl.h": "c",
         "simple_logger.h": "c",
-        "shop.h": "c"
+        "shop.h": "c",
+        "gfc_input.h": "c",
+        "imgui_impl_vulkan.h": "c",
+        "imgui_impl_sdl.h": "c",
+        "sg_util.h": "c",
+        "gfc_vector.h": "c"
     }
 }

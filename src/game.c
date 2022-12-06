@@ -4,6 +4,7 @@
 #include "gfc_input.h"
 #include "gfc_vector.h"
 #include "gfc_matrix.h"
+#include "gfc_audio.h"
 
 #include "gf3d_vgraphics.h"
 #include "gf3d_pipeline.h"
@@ -25,8 +26,11 @@
 #include "world.h"
 #include <stdlib.h>
 #include <time.h>
+#include "gamestate.h"
 
 extern int __DEBUG;
+
+GameStates state = MainMenu;
 
 int main(int argc,char *argv[])
 {
@@ -54,7 +58,7 @@ int main(int argc,char *argv[])
     gf3d_vgraphics_init("config/setup.cfg");
     gf2d_font_init("config/font.cfg");
     gf2d_draw_manager_init(500);
-    
+
     slog_sync();
 
     load_equipment_textures();
@@ -67,6 +71,7 @@ int main(int argc,char *argv[])
     slog_sync();
     gf3d_camera_set_scale(vector3d(1,1,1));
 
+    gfc_audio_init(10, 4, 2, 2, 0, 1);
 
     world_init();
 

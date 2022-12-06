@@ -6,9 +6,12 @@
 #include "gf2d_font.h"
 #include "gfc_text.h"
 #include <math.h>
+#include "sg_util.h"
 
 EmployeeManager Employees = {0};
 static DungeonType CurrentDungeonType;
+Vector3D CamFocus, PrevFocus;
+uint8_t FocusTimer, FocusSwitch;
 
 void employee_manager_init(){
     for (size_t i = 0; i < EMPLOYEE_MAX; i++){
@@ -21,8 +24,11 @@ void employee_manager_init(){
     Employees.focused_idx = 0;
     Employees.focused = Employees.employee_slots[0].entity;
     Employees.passive_effect_timer = 600;
+    CamFocus = Employees.focused->position;
+    PrevFocus = CamFocus;
+    FocusTimer = 30;
+    FocusSwitch = 0;
 }
-
 
 void employee_manager_update(){
     //todo
@@ -40,9 +46,23 @@ void employee_manager_update(){
             Employees.focused->position = vector3d(0,0,0);
         }
         Employees.focused = Employees.employee_slots[Employees.focused_idx++ % EMPLOYEE_MAX].entity;
+        PrevFocus = CamFocus;
+        FocusSwitch = 1;
+        FocusTimer = 0;
     }
 
-    gf3d_camera_look_at(vector3d(Employees.focused->position.x, Employees.focused->position.y - 25, -6), vector3d(Employees.focused->position.x, Employees.focused->position.y, 0), vector3d(0,1,0));
+
+    if(FocusSwitch){
+        FocusTimer++;
+    }
+
+    CamFocus = lerpv(PrevFocus, Employees.focused->position, (float)FocusTimer/10.0f);
+
+    if(FocusTimer == 10){
+        FocusSwitch = 0;
+    }
+
+    gf3d_camera_look_at(vector3d(CamFocus.x, CamFocus.y - 25, -6), vector3d(CamFocus.x, CamFocus.y, 0), vector3d(0,1,0));
 }
 
 
@@ -180,8 +200,8 @@ void employee_manager_draw(){
 
     switch (data->type)
     {
-    case Goblin:
-        gf2d_font_draw_line_tag("Goblin",FT_H1,gfc_color(1,0.3,0.3,1), vector2d(25, (720 / 2) - 230));
+    case Witch:
+        gf2d_font_draw_line_tag("Witch",FT_H1,gfc_color(1,0.3,0.3,1), vector2d(25, (720 / 2) - 230));
         break;
 
     case Knight:

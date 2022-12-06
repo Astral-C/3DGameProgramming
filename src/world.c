@@ -1,18 +1,21 @@
 #include "world.h"
+#include "gfc_audio.h"
 #include "employee.h"
 #include "equipment.h"
 #include "gf2d_font.h"
 #include "gfc_input.h"
+#include "hazard.h"
 
 ShopManager shop = {0};
 static DungeonManager dungeon = {0};
 
 Vector4D TypeColors[3] = {{0.5, 0.65, 0.9, 1.0}, {1.0, 0.65, 0.75, 1.0}, {0.8, 0.75, 0.4, 1.0}};
+Sound* bg_music_shop = NULL;
 
 void world_init(){
     //todo
     //shop.walls = gf3d_model_load("walls");
-    shop.floor = gf3d_model_load_full("models/floor.obj", "images/floor.png");
+    shop.floor = gf3d_model_load_full("models/shop.obj", "images/ShopAlbedo.png");
     dungeon.floor = gf3d_model_load_full("models/floor.obj", "images/ground_03.png");
     //shop.molding = gf3d_model_load("floor2");
     gfc_matrix_identity(shop.mat);
@@ -21,6 +24,9 @@ void world_init(){
     shop.cash = 10000;
     shop.fee_timer = 500;
     shop.fees = 150;
+
+    bg_music_shop = gfc_sound_load("audio/Caketown1.wav", 0.8, 0);
+    gfc_sound_play(bg_music_shop, 1, 0.8, -1, -1);
 }
 
 void world_draw(){
@@ -65,7 +71,6 @@ void world_update(){
     }
 
     shop.fee_timer--;
-
 
     if(gfc_input_key_pressed("1") && shop.cash > 100 * shop.upgrades[0]){
         shop.upgrades[0]++;
