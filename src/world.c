@@ -25,6 +25,8 @@ void world_init(){
     shop.fee_timer = 500;
     shop.fees = 150;
 
+    spawn_spike();
+
     bg_music_shop = gfc_sound_load("audio/Caketown1.wav", 0.8, 0);
     gfc_sound_play(bg_music_shop, 1, 0.8, -1, -1);
 }

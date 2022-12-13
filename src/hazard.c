@@ -31,6 +31,7 @@ void spike_draw(Entity* self){
     Vector3D offset_vec;
 
     Spike* spike_data = (Spike*)self->customData;
+    
 
     spike_data->offset = lerp(0.0f, 1.0f, (float)spike_data->timer / (float)SPIKE_MOVE_MAX);
     vector3d_copy(offset_vec, spike_data->direction);
@@ -60,7 +61,7 @@ Entity* spawn_spike(){
     spike->customData = malloc(sizeof(Spike));
     Spike* spike_data = (Spike*)spike->customData;
 
-    spike_data->direction = vector3d(0,0,-1);
+    spike_data->direction = vector3d(-1,0,0);
     spike_data->animated = gf3d_model_load_full("models/SpikeTop.obj", "images/SpikeTexture.png");
     spike_data->move_dir = 1;
     spike_data->timer = 0;
