@@ -33,18 +33,20 @@ void employee_manager_update(){
     //todo
     Employees.passive_effect_timer--;
     if(Employees.passive_effect_timer <= 0){
-        if(((EmployeeData*)Employees.focused->customData)->health < 100){
-            ((EmployeeData*)Employees.focused->customData)->health += 1 * shop.upgrades[ZE_HEALING];
+        if(Employees.focused->health < 100){
+            Employees.focused->health += 1 * shop.upgrades[ZE_HEALING];
         }
         Employees.passive_effect_timer = 600;
     }
+
+    Employees.focused = Employees.employee_slots[Employees.focused_idx].entity;
 
     if(gfc_input_key_pressed(" ")){
         if(((EmployeeData*)Employees.focused->customData)->in_dungeon){
             ((EmployeeData*)Employees.focused->customData)->in_dungeon = 0;
             Employees.focused->position = vector3d(0,0,0);
         }
-        Employees.focused = Employees.employee_slots[Employees.focused_idx++ % EMPLOYEE_MAX].entity;
+        Employees.focused_idx = Employees.focused_idx+1 % EMPLOYEE_MAX;
         PrevFocus = CamFocus;
         FocusSwitch = 1;
         FocusTimer = 0;
@@ -63,11 +65,6 @@ void employee_manager_update(){
 
     gf3d_camera_look_at(vector3d(CamFocus.x, CamFocus.y - 15, -5), vector3d(CamFocus.x, CamFocus.y, -3), vector3d(0,1,0));
 
-    for(int i = 0; i < EMPLOYEE_MAX; i++){
-        if(Employees.employee_slots[i].entity == NULL){
-            //todo
-        }
-    }
 }
 
 
@@ -77,7 +74,6 @@ void generate_employee_data(EmployeeData* data){
     data->type = rand() % EMPLOYEE_TYPES;
     data->attack = rand() % 255;
     data->defense = rand() % 255;
-    data->health = (rand() % 90) + 10;
     data->speed = rand() % 255;
 }
 
@@ -98,7 +94,8 @@ void employee_think(Entity* self){
 
                 ((EmployeeData*)self->customData)->target = NULL;
             }
-        } else {    
+        } else { 
+
             ((EmployeeData*)self->customData)->move_timer--;
             if(((EmployeeData*)self->customData)->move_timer <= 0){
                 self->velocity.x = fmod((float)drand48(), 0.095) - 0.0475;
@@ -133,6 +130,9 @@ void employee_think(Entity* self){
                 RandomizeDungeon();
                 CurrentDungeonType = GetCurrentDungeonType();
                 ((EmployeeData*)self->customData)->move_timer = 100;
+                vector3d_copy(self->position, dungeon.spawn_point);
+            } else {
+                self->position = vector3d(0,0,0);
             }
         }
 
@@ -157,7 +157,7 @@ void employee_think(Entity* self){
                 case Knight:
                 case CatPerson:
                     if(CurrentDungeonType == FIRE && ((EmployeeData*)self->customData)->move_timer == 0){
-                        ((EmployeeData*)self->customData)->health--;
+                        self->health--;
                         ((EmployeeData*)self->customData)->move_timer = 250;
                     } else {
                         ((EmployeeData*)self->customData)->move_timer--;
@@ -167,7 +167,7 @@ void employee_think(Entity* self){
                 case Ghost:
                 case Elf:
                     if(CurrentDungeonType == EARTH && ((EmployeeData*)self->customData)->move_timer == 0){
-                        if(((EmployeeData*)self->customData)->health < 100) ((EmployeeData*)self->customData)->health++;
+                        if(self->health < 100) self->health++;
                         ((EmployeeData*)self->customData)->move_timer = 100;
                     } else {
                         ((EmployeeData*)self->customData)->move_timer--;
@@ -179,9 +179,11 @@ void employee_think(Entity* self){
 
         }
     }
+
 }
 
 void employee_update(Entity* self){
+
     if(self != Employees.focused){
         if(Employees.employee_slots[Employees.focused_idx].in_dungeon && !self->hidden){
             self->hidden = 1;
@@ -190,6 +192,16 @@ void employee_update(Entity* self){
         }
         return;
     }
+
+    if(self->health <= 0){
+        entity_free(self);
+        Employees.employee_slots[Employees.focused_idx].entity = spawn_employee(Employees.employee_slots[Employees.focused_idx].type);
+        Employees.employee_slots[Employees.focused_idx].entity->customData = &Employees.employee_slots[Employees.focused_idx];
+        generate_employee_data(&Employees.employee_slots[Employees.focused_idx]);
+        Employees.employee_slots[Employees.focused_idx].in_dungeon = 0;
+        return;
+    }   
+
 
     Vector3D pos_step;
     vector3d_add(pos_step, self->position, self->velocity);
@@ -201,16 +213,12 @@ void employee_update(Entity* self){
     } else {
         int in_box = 0; //assume we are never in a bounding box
         for (size_t i = 0; i < dungeon.walkable_count; i++){
-            if(gfc_point_in_box(pos_step, dungeon.walkable[i])){
-                in_box = 1;
-                break;
-            }
+            in_box += gfc_point_in_box(pos_step, dungeon.walkable[i]);
         }
         if(!in_box){
             self->velocity.x = 0;
             self->velocity.y = 0; 
         }
-        
     }
 }
 
@@ -248,7 +256,7 @@ void employee_manager_draw(){
         break;
     }
 
-    snprintf(line, sizeof(TextWord), "Health: %d", data->health);
+    snprintf(line, sizeof(TextWord), "Health: %d", Employees.focused->health);
     gf2d_font_draw_line_tag(line,FT_H1,gfc_color(1,0.3,0.3,1), vector2d(25, (720 / 2) - 210));
     
     snprintf(line, sizeof(TextWord), "Attack: %d", data->attack + (2 * shop.upgrades[STRONK_JUICE]));
@@ -298,7 +306,7 @@ void employee_die(Entity* self){
 
 Entity* spawn_employee(EmployeeType type){
     Entity* employee_ent = entity_new();
-
+    employee_ent->health = (rand() % 80) + 20;
 
     switch (type)
     {

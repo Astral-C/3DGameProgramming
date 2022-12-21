@@ -60,6 +60,12 @@ void customer_manager_update(){
         if(Customers.customer_slots[i].entity == NULL){
             Customers.customer_slots[i].entity = spawn_customer();
 
+            if(Employees.employee_slots[Employees.focused_idx].in_dungeon && !Customers.customer_slots[i].entity->hidden){
+                Customers.customer_slots[i].entity->hidden = 1;
+            } else if(!Employees.employee_slots[Employees.focused_idx].in_dungeon && Customers.customer_slots[i].entity->hidden){
+                Customers.customer_slots[i].entity->hidden = 0;
+            }
+
             Customers.customer_slots[i].entity->textureAnimationOffset.z = (rand() % 10 >= 5 ? 1.0f : 0.0f);
 
             Customers.customer_slots[i].payout = rand() % 250;

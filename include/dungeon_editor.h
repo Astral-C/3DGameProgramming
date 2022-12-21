@@ -12,6 +12,7 @@ typedef enum {
     EM_ENEMY,
     EM_GEM,
     EM_EQUIP,
+    EM_PLAYER_SPAWN,
     EDIT_MODE_MAX
 } EditorMode;
 
@@ -45,6 +46,11 @@ typedef struct {
     Model* box_model;
     
     Vector3D camera_lookat_pos;
+    Vector3D player_spawn;
+
+    TextLine save_path;
+    TextLine model_path;
+    TextLine texture_path;
 } DungeonEditor;
 
 void dungeon_editor_init(char* config_path);

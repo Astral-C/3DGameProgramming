@@ -12,7 +12,10 @@ typedef enum
     ES_idle = 0,
     ES_hunt,
     ES_dead,
-    ES_attack
+    ES_attack,
+    ES_poison,
+    ES_slow,
+    ES_explode
 }EntityState;
 
 
@@ -45,7 +48,7 @@ typedef struct Entity_S
     Vector3D    scale;
     Vector3D    rotation;
     
-    Uint32      health;     /**<entity dies when it reaches zero*/
+    Sint32      health;     /**<entity dies when it reaches zero*/
 
     Vector4D textureAnimationOffset;
     int useDisplacement;

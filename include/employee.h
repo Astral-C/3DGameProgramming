@@ -20,7 +20,7 @@ typedef struct {
     EmployeeType type;
     Entity* entity, *target;
     int move_timer;
-    uint8_t health, attack, defense, speed, in_dungeon;
+    uint8_t attack, defense, speed, in_dungeon;
     uint32_t equipment[EQUIP_SLOT_MAX];
 } EmployeeData;
 

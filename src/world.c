@@ -188,10 +188,11 @@ void RandomizeDungeon(){
     SJson* hazard_spawns = sj_object_get_value(config, "hazard_spawns");
     SJson* gem_spawns = sj_object_get_value(config, "gem_spawns");
     SJson* equip_spawns = sj_object_get_value(config, "equip_spawns");
+    SJson* player_spawn = sj_object_get_value(config, "player_spawn");
 
     if(boxes){
         dungeon.walkable_count = sj_array_get_count(boxes);
-        dungeon.walkable = malloc(sizeof(Box)*dungeon.walkable_count);
+        dungeon.walkable = realloc(dungeon.walkable, sizeof(Box)*dungeon.walkable_count);
         for (size_t i = 0; i < dungeon.walkable_count; i++){
             SJson* current_box = sj_array_get_nth(boxes, i);
             float x, y, z, w, h, d;
@@ -212,7 +213,7 @@ void RandomizeDungeon(){
             SJson* current = sj_array_get_nth(enemy_spawns, i);
             EnemyType type;
             Vector3D pos;
-            sj_get_integer_value(sj_object_get_value(current, "type"), &type);
+            sj_get_integer_value(sj_object_get_value(current, "type"), (int*)&type);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 0), &pos.x);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 1), &pos.y);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 2), &pos.z);
@@ -227,7 +228,7 @@ void RandomizeDungeon(){
             SJson* current = sj_array_get_nth(hazard_spawns, i);
             int type;
             Vector3D pos;
-            sj_get_integer_value(sj_object_get_value(current, "type"), &type);
+            sj_get_integer_value(sj_object_get_value(current, "type"), (int*)&type);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 0), &pos.x);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 1), &pos.y);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 2), &pos.z);

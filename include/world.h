@@ -45,8 +45,7 @@ typedef struct {
     DungeonType type;
     Model* floor;
     Matrix4 mat;
-    Entity* items[15];
-    Entity* hazards[15];
+    Vector3D spawn_point;
     
     int walkable_count;
     Box* walkable;

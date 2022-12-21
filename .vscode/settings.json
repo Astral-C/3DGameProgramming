@@ -22,6 +22,7 @@
         "gfc_matrix.h": "c",
         "gf3d_vgraphics.h": "c",
         "gfc_primitives.h": "c",
-        "equipment.h": "c"
+        "equipment.h": "c",
+        "gfc_types.h": "c"
     }
 }

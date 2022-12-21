@@ -1,9 +1,1 @@
-{
-    "model" : "models/water_dungeon.obj",
-    "texture" : "images/water_dungeon_tex.png",
-    "collision" : [[0,0,0,0,0,0]],
-    "enemy_spawns" : [{"type":0, "position":[0,0,0]}],
-    "hazard_spawns":[{"type":0, "position":[0,0,0]}],
-    "gem_spawns":[[0,0,0]],
-    "equip_spawns":[[0,0,0]]
-}
+{"model":"models/water_dungeon.obj","texture":"images/water_dungeon_tex.png","player_spawn":["0.000000","0.000000","0.000000"],"collision":[["-12.100008","-10.200001","-10.000000","24.200016","21.200005","10.500000"],["-28.300070","-2.899998","-10.000000","16.799988","8.199955","10.500000"]],"enemy_spawns":[{"type":"0","position":["7.399995","1.600000","0.000000"]},{"type":"3","position":["-22.300049","-1.100000","0.000000"]}],"hazard_spawns":[{"type":"0","position":["6.799996","-6.499996","0.000000"]}],"gem_spawns":[["-6.199996","4.199998","0.000000"]],"equip_spawns":[["-7.099996","-5.799997","0.000000"]]}
