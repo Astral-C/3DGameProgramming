@@ -96,13 +96,12 @@ void fire_think(Entity* self){
     self->velocity.y = Employees.focused->position.y - self->position.y;
     vector3d_normalize(&self->velocity);
 
+    self->velocity.x *= 0.01;
+    self->velocity.y *= 0.01;
+
     if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, self->position.z, 3))){
-        Employees.focused->health -= 10;
+        Employees.focused->health -= 3;
         self->team -= 10;
-        if(self->team > 40){
-            entity_free(self);
-            return;
-        }
         
     }
 
