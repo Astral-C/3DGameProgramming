@@ -71,7 +71,7 @@ void customer_manager_update(){
             Customers.customer_slots[i].payout = rand() % 250;
             Customers.customer_slots[i].type = rand() % CUSTOMER_TYPES;
             Customers.customer_slots[i].want_type = rand() % EMPLOYEE_TYPES;
-            Customers.customer_slots[i].leave_timer = (rand() % 700) + 400 + (50 * shop.upgrades[COMFORT]);
+            Customers.customer_slots[i].leave_timer = (rand() % 700) + 400 + (50 * shop.upgrades[COMFORT] + (10 * shop.furniture_count));
             
             Customers.customer_slots[i].entity->model = gf3d_model_new();
             Customers.customer_slots[i].entity->model->mesh = gf3d_mesh_load("models/cube.obj");

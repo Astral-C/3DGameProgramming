@@ -35,13 +35,15 @@ void generic_enemy_think(Entity* self){
 	   }
     }
 
-	if(self->state == POISON){
-		self->health--;
-	}
 
-    if(self->team == 0){
+    if(self->team <= 0){
+		if(self->state == POISON){
+			self->health--;
+		}
         self->team = 40;
-    }
+    } else {
+		self->team--;
+	}
 
     if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, 0, 2.2)) && gfc_input_key_pressed("e")){
         self->health--;

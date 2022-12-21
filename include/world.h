@@ -39,6 +39,7 @@ typedef struct {
     Box collision;
 
     Vector4D floor_offset;
+    int furniture_count;
 } ShopManager;
 
 typedef struct {

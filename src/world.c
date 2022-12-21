@@ -15,6 +15,46 @@ Vector4D TypeColors[3] = {{0.5, 0.65, 0.9, 1.0}, {1.0, 0.65, 0.75, 1.0}, {0.8, 0
 Sound* bg_music_shop = NULL;
 Model* box = NULL;
 
+void furniture_think(Entity* self){
+    if(Employees.employee_slots[Employees.focused_idx].in_dungeon && !self->hidden){
+        self->hidden = 1;
+    } else if(!Employees.employee_slots[Employees.focused_idx].in_dungeon && self->hidden){
+        self->hidden = 0;
+    }
+}
+
+void spawn_furniture(){
+    int price = rand() % 300;
+    if(shop.cash > price);
+    float percent_x = (float)(rand() % 100) / 100.0f;
+    float percent_y = (float)(rand() % 100) / 100.0f;
+    Entity* furniture = entity_new_at(vector3d((shop.collision.x + 0.5f + ((shop.collision.w-0.5f) * percent_x)), (shop.collision.y + 0.5f + ((shop.collision.h - 0.5f) * percent_y)), 0));
+    shop.furniture_count += 1;
+    shop.cash -= price;
+    furniture->think = furniture_think;
+
+    int type = rand() % 5;
+
+    switch (type)
+    {
+    case 0:
+        furniture->model = gf3d_model_load_full("models/cube.obj", "images/big_plant.png");
+        break;
+    case 1:
+        furniture->model = gf3d_model_load_full("models/cube.obj", "images/flag_furniture.png");
+        break;
+    case 2:
+        furniture->model = gf3d_model_load_full("models/cube.obj", "images/lamp_furniture.png");
+        break;
+    case 3:
+        furniture->model = gf3d_model_load_full("models/cube.obj", "images/plant_furniture.png");
+        break;
+    case 4:
+        furniture->model = gf3d_model_load_full("models/cube.obj", "images/vending_machine.png");
+        break;
+    }
+}
+
 void world_init(){
     //todo
     //shop.walls = gf3d_model_load("walls");
@@ -131,6 +171,10 @@ void world_update(){
     if(gfc_input_key_pressed("0") && shop.cash > 100 * shop.upgrades[9]){
         shop.upgrades[9]++;
         shop.cash -= 100 * shop.upgrades[9];
+    }
+
+    if(gfc_input_key_pressed("p")){
+        spawn_furniture();
     }
 
 }
