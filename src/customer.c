@@ -39,6 +39,12 @@ void customer_manager_init(){
 void customer_think(Entity* self){
     CustomerData* customer = ((CustomerData*)self->customData);
 
+    if(Employees.employee_slots[Employees.focused_idx].in_dungeon && !self->hidden){
+        self->hidden = 1;
+    } else if(!Employees.employee_slots[Employees.focused_idx].in_dungeon && self->hidden){
+        self->hidden = 0;
+    }
+
     customer->leave_timer--;
     if(customer->leave_timer <= 0){
         entity_free(self);
@@ -71,7 +77,9 @@ void customer_manager_update(){
 }
 
 Entity* spawn_customer(){
-    Entity* customer = entity_new_at(vector3d(((rand() % 70) - 35), (rand() % 100) - 50, 0));
+    float percent_x = (float)(rand() % 100) / 100.0f;
+    float percent_y = (float)(rand() % 100) / 100.0f;
+    Entity* customer = entity_new_at(vector3d((shop.collision.x + 0.5f + ((shop.collision.w-0.5f) * percent_x)), (shop.collision.y + 0.5f + ((shop.collision.h - 0.5f) * percent_y)), 0));
 
     customer->think = customer_think;
 

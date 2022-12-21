@@ -6,6 +6,7 @@
 #include "gfc_input.h"
 #include "hazard.h"
 #include "gf2d_draw.h"
+#include "dungeon_editor.h"
 
 ShopManager shop = {0};
 DungeonManager dungeon = {0};
@@ -35,17 +36,13 @@ void world_init(){
 
 void world_draw(){
     //gf3d_model_draw(shop.walls,shop.mat);
-    gf3d_model_draw_map(shop.floor,shop.mat,256);
-    //gf3d_model_draw(dungeon.floor, dungeon.mat, TypeColors[dungeon.type], vector4d(1,1,1,1),vector4d(0,0,0,0));
-    
-    Matrix4 drawBox;
-    gfc_matrix_identity(drawBox);
-    gfc_matrix_translate(drawBox, vector3d(shop.collision.x, shop.collision.y, shop.collision.z));
-    gf3d_model_draw(box, drawBox, vector4d(1,1,1,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
 
-    gfc_matrix_identity(drawBox);
-    gfc_matrix_translate(drawBox, vector3d(shop.collision.x + shop.collision.w, shop.collision.y + shop.collision.h, shop.collision.z + shop.collision.d));
-    gf3d_model_draw(box, drawBox, vector4d(1,1,1,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+    if(!Employees.employee_slots[Employees.focused_idx].in_dungeon){
+        gf3d_model_draw_map(shop.floor,shop.mat,256);
+    } else {
+        gf3d_model_draw_map(dungeon.floor,shop.mat,256);
+    }
+    //gf3d_model_draw(dungeon.floor, dungeon.mat, TypeColors[dungeon.type], vector4d(1,1,1,1),vector4d(0,0,0,0));
 
 
     char money[32];
@@ -160,13 +157,117 @@ void cash_think(Entity* self){
 void RandomizeDungeon(){
     dungeon.type = rand() % DUNGEON_TYPE_MAX;
 
-    Entity* cash;
-    for (size_t i = 0; i < (rand() % 10) + (rand() % (shop.upgrades[LUCKY_DAYS] + 1)); i++){
-        cash = entity_new();
-        cash->model = gf3d_model_load_full("models/gem.obj", "images/gem.png");
-        cash->position = vector3d(((rand() % 70) - 35) + 300, (rand() % 100) - 50, 0);
-        cash->think = cash_think;
+    SJson* config = NULL;
+    switch (dungeon.type)
+    {
+    case WATER:
+        config = sj_load("config/water_dungeon.json");
+        break;
+    case FIRE:
+        config = sj_load("config/fire_dungeon.json");
+        break;
+    case EARTH:
+        config = sj_load("config/earth_dungeon.json");
+        break;
+    default:
+        break;
+    }
+
+    if(config == NULL){
+        ((EmployeeData*)Employees.focused->customData)->in_dungeon = 0; //what
+    }
+
+    char* model_path = sj_get_string_value(sj_object_get_value(config, "model"));
+    char* texture_path = sj_get_string_value(sj_object_get_value(config, "texture"));
+
+    gfc_matrix_identity(dungeon.mat);
+    dungeon.floor = gf3d_model_load_full(model_path, texture_path);
+
+    SJson* boxes = sj_object_get_value(config, "collision");
+    SJson* enemy_spawns = sj_object_get_value(config, "enemy_spawns");
+    SJson* hazard_spawns = sj_object_get_value(config, "hazard_spawns");
+    SJson* gem_spawns = sj_object_get_value(config, "gem_spawns");
+    SJson* equip_spawns = sj_object_get_value(config, "equip_spawns");
+
+    if(boxes){
+        dungeon.walkable_count = sj_array_get_count(boxes);
+        dungeon.walkable = malloc(sizeof(Box)*dungeon.walkable_count);
+        for (size_t i = 0; i < dungeon.walkable_count; i++){
+            SJson* current_box = sj_array_get_nth(boxes, i);
+            float x, y, z, w, h, d;
+            sj_get_float_value(sj_array_get_nth(current_box, 0), &x);
+            sj_get_float_value(sj_array_get_nth(current_box, 1), &y);
+            sj_get_float_value(sj_array_get_nth(current_box, 2), &z);
+            sj_get_float_value(sj_array_get_nth(current_box, 3), &w);
+            sj_get_float_value(sj_array_get_nth(current_box, 4), &h);
+            sj_get_float_value(sj_array_get_nth(current_box, 5), &d);
+
+            dungeon.walkable[i] = gfc_box(x,y,z,w,h,d);
+        }
+    }
+
+    if(enemy_spawns){
+        int enemy_count = sj_array_get_count(enemy_spawns);
+        for (size_t i = 0; i < enemy_count; i++){
+            SJson* current = sj_array_get_nth(enemy_spawns, i);
+            EnemyType type;
+            Vector3D pos;
+            sj_get_integer_value(sj_object_get_value(current, "type"), &type);
+            sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 0), &pos.x);
+            sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 1), &pos.y);
+            sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 2), &pos.z);
+
+            spawn_enemy(type, pos);
+        }
+    }
     
+    if(hazard_spawns){
+        int hazard_count = sj_array_get_count(hazard_spawns);
+        for (size_t i = 0; i < hazard_count; i++){
+            SJson* current = sj_array_get_nth(hazard_spawns, i);
+            int type;
+            Vector3D pos;
+            sj_get_integer_value(sj_object_get_value(current, "type"), &type);
+            sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 0), &pos.x);
+            sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 1), &pos.y);
+            sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 2), &pos.z);
+
+            switch (type)
+            {
+                case 0: spawn_puddle(pos); break;
+                case 1: spawn_spike(pos); break;
+                case 2: spawn_fire(pos); break;
+                default: break;
+            }
+        }
+    }
+
+    if(gem_spawns){
+        int gem_count = sj_array_get_count(gem_spawns);
+        for (size_t i = 0; i < gem_count; i++){
+            SJson* current = sj_array_get_nth(gem_spawns, i);
+
+            Vector3D pos;
+            sj_get_float_value(sj_array_get_nth(current, 0), &pos.x);
+            sj_get_float_value(sj_array_get_nth(current, 1), &pos.y);
+            sj_get_float_value(sj_array_get_nth(current, 2), &pos.z);
+            Entity* cash = entity_new_at(pos);
+            cash->model = gf3d_model_load_full("models/gem.obj", "images/gem.png");
+            cash->think = cash_think;
+        }
+    }
+
+    if(equip_spawns){
+        int equip_count = sj_array_get_count(equip_spawns);
+        for (size_t i = 0; i < equip_count; i++){
+            SJson* current = sj_array_get_nth(equip_spawns, i);
+
+            Vector3D pos;
+            sj_get_float_value(sj_array_get_nth(current, 0), &pos.x);
+            sj_get_float_value(sj_array_get_nth(current, 1), &pos.y);
+            sj_get_float_value(sj_array_get_nth(current, 2), &pos.z);
+            spawn_random_equipment(pos);
+        }
     }
     
 

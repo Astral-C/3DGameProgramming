@@ -466,7 +466,7 @@ void dungeon_editor_draw(){
     }
     
     for (size_t i = 0; i < dungeon.walkable_count; i++){
-        int selected = editor.current_col_box != i && mode != EM_COLLISION;
+        int selected = editor.current_col_box != i && mode == EM_COLLISION;
         gfc_matrix_identity(drawBox);
         gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x, dungeon.walkable[i].y, dungeon.walkable[i].z));
         gf3d_model_draw(editor.box_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
@@ -477,7 +477,7 @@ void dungeon_editor_draw(){
     }
 
     for (size_t i = 0; i < editor.enemy_count; i++){
-        int selected = editor.current_col_box != i && mode != EM_ENEMY;
+        int selected = editor.current_col_box != i && mode == EM_ENEMY;
         gfc_matrix_identity(drawBox);
         gfc_matrix_translate(drawBox, vector3d(editor.enemies[i].position.x, editor.enemies[i].position.y, editor.enemies[i].position.z));
         switch (editor.enemies[i].type)
@@ -504,25 +504,25 @@ void dungeon_editor_draw(){
 
 
     for (size_t i = 0; i < editor.hazard_count; i++){
-        int selected = editor.current_col_box != i && mode != EM_HAZARD;
+        int selected = editor.current_col_box != i && mode == EM_HAZARD;
         gfc_matrix_identity(drawBox);
         gfc_matrix_translate(drawBox, vector3d(editor.hazards[i].position.x, editor.hazards[i].position.y,editor.hazards[i].position.z));
         switch(editor.hazards[i].type){
-            case 0: gf3d_model_draw(spike_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
-            case 1: gf3d_model_draw(puddle_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
+            case 0: gf3d_model_draw(puddle_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
+            case 1: gf3d_model_draw(spike_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
             case 2: gf3d_model_draw(fire_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
         }
     }
 
     for (size_t i = 0; i < editor.gem_count; i++){
-        int selected = editor.current_col_box != i && mode != EM_GEM;
+        int selected = editor.current_col_box != i && mode == EM_GEM;
         gfc_matrix_identity(drawBox);
         gfc_matrix_translate(drawBox, vector3d(editor.gem_spawns[i].x, editor.gem_spawns[i].y, editor.gem_spawns[i].z));
         gf3d_model_draw(gem_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
     }
 
     for (size_t i = 0; i < editor.equip_count; i++){
-        int selected = editor.current_col_box != i && mode != EM_EQUIP;
+        int selected = editor.current_col_box != i && mode == EM_EQUIP;
         gfc_matrix_identity(drawBox);
         gfc_matrix_translate(drawBox, vector3d(editor.equip_spawns[i].x, editor.equip_spawns[i].y, editor.equip_spawns[i].z));
         gf3d_model_draw(editor.box_model, drawBox, vector4d(0,1*selected,0,1), vector4d(1,1,1,1), vector4d(1,1,1,1));

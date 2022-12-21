@@ -120,7 +120,9 @@ void employee_think(Entity* self){
             }
         }
         
-        if(!gfc_point_in_box(self->position, shop.collision)){
+        Vector3D temp;
+        vector3d_add(temp, self->position, self->velocity);
+        if(!gfc_point_in_box(temp, shop.collision)){
             self->velocity.x = fmod((float)drand48(), 0.095) - 0.0475;
             self->velocity.y = fmod((float)drand48(), 0.095) - 0.0475;
         }
@@ -131,11 +133,7 @@ void employee_think(Entity* self){
                 RandomizeDungeon();
                 CurrentDungeonType = GetCurrentDungeonType();
                 ((EmployeeData*)self->customData)->move_timer = 100;
-                self->position = vector3d(300, 0, 0);
-            } else {
-                self->position = vector3d(0, 0, 0);
             }
-
         }
 
         if(gfc_input_key_down("s")){
@@ -184,7 +182,14 @@ void employee_think(Entity* self){
 }
 
 void employee_update(Entity* self){
-    if(self != Employees.focused) return;
+    if(self != Employees.focused){
+        if(Employees.employee_slots[Employees.focused_idx].in_dungeon && !self->hidden){
+            self->hidden = 1;
+        } else if(!Employees.employee_slots[Employees.focused_idx].in_dungeon && self->hidden){
+            self->hidden = 0;
+        }
+        return;
+    }
 
     Vector3D pos_step;
     vector3d_add(pos_step, self->position, self->velocity);

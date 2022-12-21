@@ -99,6 +99,10 @@ void fire_think(Entity* self){
     if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, self->position.z, 3))){
         Employees.focused->health-=10;
     }
+
+    if(!((EmployeeData*)Employees.focused->customData)->in_dungeon){
+        entity_free(self);
+    }
 }
 
 Entity* spawn_puddle(Vector3D position){

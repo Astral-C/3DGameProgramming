@@ -19,6 +19,7 @@ typedef struct {
 } Enemy;
 
 
-void spawn_enemy(EnemyType type);
+void spawn_enemy(EnemyType type, Vector3D pos);
+
 
 #endif

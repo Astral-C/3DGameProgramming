@@ -1,6 +1,6 @@
 {
-    "model" : "models/water_dungeon.obj",
-    "texture" : "images/water_dungeon_tex.png",
+    "model" : "models/fire_dungeon.obj",
+    "texture" : "images/fire_dungeon_tex.png",
     "collision" : [[0,0,0,0,0,0]],
     "enemy_spawns" : [{"type":0, "position":[0,0,0]}],
     "hazard_spawns":[{"type":0, "position":[0,0,0]}],

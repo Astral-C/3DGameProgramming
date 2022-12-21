@@ -26,8 +26,8 @@ typedef struct {
     Vector4D water_anim;
 } Puddle;
 
-Entity* spawn_spike();
-Entity* spawn_puddle();
-Entity* spawn_fire();
+Entity* spawn_spike(Vector3D pos);
+Entity* spawn_puddle(Vector3D pos);
+Entity* spawn_fire(Vector3D pos);
 
 #endif
