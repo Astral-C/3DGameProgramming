@@ -1,9 +1,1 @@
-{
-    "model" : "models/earth_dungeon.obj",
-    "texture" : "images/earth_dungeon_tex.png",
-    "collision" : [[0,0,0,0,0,0]],
-    "enemy_spawns" : [{"type":0, "position":[0,0,0]}],
-    "hazard_spawns":[{"type":0, "position":[0,0,0]}],
-    "gem_spawns":[[0,0,0]],
-    "equip_spawns":[[0,0,0]]
-}
+{"model":"models/earth_dungeon.obj","texture":"images/earth_dungeon_tex.png","player_spawn":["0.000000","0.000000","0.000000"],"collision":[["-11.900007","-10.100000","-10.000000","23.700052","21.600044","10.500000"]],"enemy_spawns":[{"type":"2","position":["-8.299995","6.699996","0.000000"]},{"type":"1","position":["7.599995","3.499999","0.000000"]},{"type":"4","position":["-3.799999","-8.999998","0.000000"]}],"hazard_spawns":[{"type":"1","position":["11.000006","-5.599997","0.000000"]}],"gem_spawns":[["-10.400003","-4.599998","0.000000"],["11.100006","5.499997","0.000000"]],"equip_spawns":[["3.599999","8.399996","0.000000"],["-10.300003","-7.099996","0.000000"]]}
