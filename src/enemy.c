@@ -74,6 +74,8 @@ void rock_throw_think(Entity* self){
 
     if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, 0, 1))){
         Employees.focused->health-=10;
+		entity_free(self);
+		return;
     }
 
     if(!((EmployeeData*)Employees.focused->customData)->in_dungeon){

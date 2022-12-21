@@ -195,9 +195,9 @@ void employee_update(Entity* self){
 
     if(self->health <= 0){
         entity_free(self);
+        generate_employee_data(&Employees.employee_slots[Employees.focused_idx]);
         Employees.employee_slots[Employees.focused_idx].entity = spawn_employee(Employees.employee_slots[Employees.focused_idx].type);
         Employees.employee_slots[Employees.focused_idx].entity->customData = &Employees.employee_slots[Employees.focused_idx];
-        generate_employee_data(&Employees.employee_slots[Employees.focused_idx]);
         Employees.employee_slots[Employees.focused_idx].in_dungeon = 0;
         return;
     }   

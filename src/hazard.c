@@ -13,7 +13,7 @@ void spike_think(Entity* self){
         s.x = self->position.x + spike_data->direction.x;
         s.y = self->position.y + spike_data->direction.y;
         s.z = self->position.z + spike_data->direction.z;
-        s.r = 2.0f;
+        s.r = 5.0f;
 
         if(gfc_point_in_sphere(Employees.focused->position, s)){
             Employees.focused->health-=5;
@@ -96,13 +96,11 @@ void fire_think(Entity* self){
     self->velocity.y = Employees.focused->position.y - self->position.y;
     vector3d_normalize(&self->velocity);
 
-    self->velocity.x *= 0.01;
-    self->velocity.y *= 0.01;
+    self->velocity.x *= 0.005;
+    self->velocity.y *= 0.005;
 
-    if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, self->position.z, 3))){
-        Employees.focused->health -= 3;
-        self->team -= 10;
-        
+    if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, self->position.z, 0.5))){
+        Employees.focused->health-=100;
     }
 
     if(!((EmployeeData*)Employees.focused->customData)->in_dungeon){
