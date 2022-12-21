@@ -38,7 +38,7 @@ typedef struct {
 
 extern EquipmentDef Equipment[6];
 
-Entity* spawn_random_equipment();
+Entity* spawn_random_equipment(Vector3D position);
 void load_equipment_textures();
 
 // load equip defs from json?

@@ -6,6 +6,8 @@ layout(binding = 0) uniform UniformBufferObject {
     mat4 view;
     mat4 proj;
     vec4 color;
+    vec4 ambient;
+    vec4 texAnimationFrame;
 } ubo;
 
 out gl_PerVertex
@@ -27,7 +29,12 @@ void main()
     tempNormal = ubo.model * vec4(inNormal,1.0);
     fragNormal = normalize(tempNormal.xyz);
     gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
-    fragTexCoord = inTexCoord;
+    fragTexCoord = inTexCoord + ubo.texAnimationFrame.xy;
+
+    if(ubo.texAnimationFrame.z > 0){
+        fragTexCoord.x = 1.0 - fragTexCoord.x;
+    }
+    
     colorMod = ubo.color;
     fragAmbient = ubo.ambient;
 }

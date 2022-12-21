@@ -24,6 +24,10 @@ static PipelineManager gf3d_pipeline = {0};
 void gf3d_pipeline_close();
 void gf3d_pipeline_create_basic_model_descriptor_pool(Pipeline *pipe);
 void gf3d_pipeline_create_basic_model_descriptor_set_layout(Pipeline *pipe);
+
+void gf3d_pipeline_create_displacement_model_descriptor_pool(Pipeline *pipe);
+void gf3d_pipeline_create_displacement_model_descriptor_set_layout(Pipeline *pipe);
+
 void gf3d_pipeline_create_descriptor_sets(Pipeline *pipe);
 VkFormat gf3d_pipeline_find_depth_format();
 
@@ -136,7 +140,7 @@ int gf3d_pipeline_render_pass_create(VkDevice device,SJson *config,VkRenderPass 
     {
         colorAttachment = gf3d_config_attachment_description(item,gf3d_swapchain_get_format());
         colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//colorAttachment.finalLayout;
+        colorAttachmentRef.layout = colorAttachment.finalLayout;
     }
     
     item = sj_object_get_value(config,"dependency");
@@ -344,7 +348,8 @@ Pipeline *gf3d_pipeline_create_from_config(
 
     colorBlendAttachment = gf3d_config_pipeline_color_blend_attachment(sj_object_get_value(config,"colorBlendAttachment"));
 
-    
+    SJson* displacement = sj_object_get_value(config, "displacement");
+
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
@@ -357,8 +362,14 @@ Pipeline *gf3d_pipeline_create_from_config(
     
     //NOTE: Really gonna have to look closer at these to see how they can be driven from config, or passed the
     // the information needed to make this work generically
-    gf3d_pipeline_create_basic_model_descriptor_pool(pipe);
-    gf3d_pipeline_create_basic_model_descriptor_set_layout(pipe);
+    if(displacement == NULL){
+        gf3d_pipeline_create_basic_model_descriptor_pool(pipe);
+        gf3d_pipeline_create_basic_model_descriptor_set_layout(pipe);
+    } else {
+        gf3d_pipeline_create_displacement_model_descriptor_pool(pipe);
+        gf3d_pipeline_create_displacement_model_descriptor_set_layout(pipe);
+    }
+
     gf3d_pipeline_create_descriptor_sets(pipe);
     
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -520,6 +531,42 @@ void gf3d_pipeline_create_basic_model_descriptor_pool(Pipeline *pipe)
     pipe->descriptorPoolCount = gf3d_pipeline.chainLength;
 }
 
+void gf3d_pipeline_create_displacement_model_descriptor_pool(Pipeline *pipe)
+{
+    int i;
+    VkDescriptorPoolSize poolSize[3] = {0};
+    VkDescriptorPoolCreateInfo poolInfo = {0};
+    
+    if (!pipe)
+    {
+        slog("no pipeline provided");
+        return;
+    }
+    poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize[0].descriptorCount = pipe->descriptorSetCount;
+    poolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize[1].descriptorCount = pipe->descriptorSetCount;
+    poolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSize[2].descriptorCount = pipe->descriptorSetCount;
+    
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 3;
+    poolInfo.pPoolSizes = poolSize;
+    poolInfo.maxSets = pipe->descriptorSetCount;
+    pipe->descriptorPool = (VkDescriptorPool *)gfc_allocate_array(sizeof(VkDescriptorPool),gf3d_pipeline.chainLength);
+
+    for (i =0; i < gf3d_pipeline.chainLength;i++)
+    {
+        if (vkCreateDescriptorPool(pipe->device, &poolInfo, NULL, &pipe->descriptorPool[i]) != VK_SUCCESS)
+        {
+            slog("failed to create descriptor pool!");
+            return;
+        }
+    }
+    pipe->descriptorPoolCount = gf3d_pipeline.chainLength;
+}
+
+
 void gf3d_pipeline_reset_frame(Pipeline *pipe,Uint32 frame)
 {
     if (!pipe)return;
@@ -604,6 +651,49 @@ void gf3d_pipeline_create_basic_model_descriptor_set_layout(Pipeline *pipe)
 
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = 2;
+    layoutInfo.pBindings = bindings;
+
+    if (vkCreateDescriptorSetLayout(pipe->device, &layoutInfo, NULL, &pipe->descriptorSetLayout) != VK_SUCCESS)
+    {
+        slog("failed to create descriptor set layout!");
+    }
+}
+
+void gf3d_pipeline_create_displacement_model_descriptor_set_layout(Pipeline *pipe)
+{
+    VkDescriptorSetLayoutCreateInfo layoutInfo = {0};
+    VkDescriptorSetLayoutBinding uboLayoutBinding = {0};
+    VkDescriptorSetLayoutBinding samplerLayoutBinding = {0};
+    VkDescriptorSetLayoutBinding samplerLayoutBindingDisplacement = {0};
+    
+    VkDescriptorSetLayoutBinding bindings[3];
+    
+    samplerLayoutBindingDisplacement.binding = 2;
+    samplerLayoutBindingDisplacement.descriptorCount = 1;
+    samplerLayoutBindingDisplacement.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBindingDisplacement.pImmutableSamplers = NULL;
+    samplerLayoutBindingDisplacement.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    
+    memcpy(&bindings[2],&samplerLayoutBindingDisplacement,sizeof(VkDescriptorSetLayoutBinding));
+    
+    samplerLayoutBinding.binding = 1;
+    samplerLayoutBinding.descriptorCount = 1;
+    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    samplerLayoutBinding.pImmutableSamplers = NULL;
+    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    
+    memcpy(&bindings[1],&samplerLayoutBinding,sizeof(VkDescriptorSetLayoutBinding));
+
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = NULL; // Optional
+
+    memcpy(&bindings[0],&uboLayoutBinding,sizeof(VkDescriptorSetLayoutBinding));
+
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 3;
     layoutInfo.pBindings = bindings;
 
     if (vkCreateDescriptorSetLayout(pipe->device, &layoutInfo, NULL, &pipe->descriptorSetLayout) != VK_SUCCESS)

@@ -19,6 +19,9 @@ typedef struct
     Pipeline *pipe;
     Pipeline *highlight_pipe;
     Pipeline *sky_pipe;
+    Pipeline *displacement_pipe;
+    Pipeline *water_pipe;
+    Pipeline *map_pipe;
     Uint32 mesh_max;
     VkVertexInputAttributeDescription attributeDescriptions[ATTRIBUTE_COUNT];
     VkVertexInputBindingDescription bindingDescription;
@@ -75,7 +78,18 @@ void gf3d_mesh_init(Uint32 mesh_max)
         sizeof(MeshUBO)
     );
 
-    /*gf3d_mesh.sky_pipe = gf3d_pipeline_create_from_config(
+    gf3d_mesh.map_pipe = gf3d_pipeline_create_from_config(
+        gf3d_vgraphics_get_default_logical_device(),
+        "config/map_pipeline.cfg",
+        gf3d_vgraphics_get_view_extent(),
+        mesh_max,
+        gf3d_mesh_get_bind_description(),
+        gf3d_mesh_get_attribute_descriptions(NULL),
+        count,
+        sizeof(MapUBO)
+    );
+
+    gf3d_mesh.sky_pipe = gf3d_pipeline_create_from_config(
         gf3d_vgraphics_get_default_logical_device(),
         "config/sky_pipeline.cfg",
         gf3d_vgraphics_get_view_extent(),
@@ -84,9 +98,9 @@ void gf3d_mesh_init(Uint32 mesh_max)
         gf3d_mesh_get_attribute_descriptions(NULL),
         count,
         sizeof(SkyUBO)
-    );*/
+    );
 
-    /*gf3d_mesh.highlight_pipe = gf3d_pipeline_create_from_config(
+    gf3d_mesh.highlight_pipe = gf3d_pipeline_create_from_config(
         gf3d_vgraphics_get_default_logical_device(),
         "config/highlight_pipeline.cfg",
         gf3d_vgraphics_get_view_extent(),
@@ -95,7 +109,29 @@ void gf3d_mesh_init(Uint32 mesh_max)
         gf3d_mesh_get_attribute_descriptions(NULL),
         count,
         sizeof(HighlightUBO)
-    );*/
+    );
+
+    gf3d_mesh.displacement_pipe = gf3d_pipeline_create_from_config(
+        gf3d_vgraphics_get_default_logical_device(),
+        "config/model_pipeline_displacement.cfg",
+        gf3d_vgraphics_get_view_extent(),
+        mesh_max,
+        gf3d_mesh_get_bind_description(),
+        gf3d_mesh_get_attribute_descriptions(NULL),
+        count,
+        sizeof(MeshUBO)
+    );
+
+    gf3d_mesh.water_pipe = gf3d_pipeline_create_from_config(
+        gf3d_vgraphics_get_default_logical_device(),
+        "config/water_pipeline.cfg",
+        gf3d_vgraphics_get_view_extent(),
+        mesh_max,
+        gf3d_mesh_get_bind_description(),
+        gf3d_mesh_get_attribute_descriptions(NULL),
+        count,
+        sizeof(MeshUBO)
+    );
 
     slog("mesh system initialized");
 }
@@ -105,9 +141,24 @@ Pipeline *gf3d_mesh_get_pipeline()
     return gf3d_mesh.pipe;
 }
 
+Pipeline *gf3d_mesh_get_map_pipeline()
+{
+    return gf3d_mesh.map_pipe;
+}
+
 Pipeline *gf3d_mesh_get_highlight_pipeline()
 {
     return gf3d_mesh.highlight_pipe;
+}
+
+Pipeline *gf3d_mesh_get_displacement_pipeline()
+{
+    return gf3d_mesh.displacement_pipe;
+}
+
+Pipeline *gf3d_mesh_get_water_pipeline()
+{
+    return gf3d_mesh.water_pipe;
 }
 
 Pipeline *gf3d_mesh_get_sky_pipeline()
@@ -119,16 +170,18 @@ void gf3d_mesh_reset_pipes()
 {
     Uint32 bufferFrame = gf3d_vgraphics_get_current_buffer_frame();
     
-    //gf3d_pipeline_reset_frame(gf3d_mesh.sky_pipe,bufferFrame);
+    gf3d_pipeline_reset_frame(gf3d_mesh.map_pipe,bufferFrame);
+    gf3d_pipeline_reset_frame(gf3d_mesh.displacement_pipe,bufferFrame);
+    gf3d_pipeline_reset_frame(gf3d_mesh.water_pipe,bufferFrame);
     gf3d_pipeline_reset_frame(gf3d_mesh.pipe,bufferFrame);
-    //gf3d_pipeline_reset_frame(gf3d_mesh.highlight_pipe,bufferFrame);
 }
 
 void gf3d_mesh_submit_pipe_commands()
 {
-    //gf3d_pipeline_submit_commands(gf3d_mesh.sky_pipe);
+    gf3d_pipeline_submit_commands(gf3d_mesh.map_pipe);
+    gf3d_pipeline_submit_commands(gf3d_mesh.displacement_pipe);
+    gf3d_pipeline_submit_commands(gf3d_mesh.water_pipe);
     gf3d_pipeline_submit_commands(gf3d_mesh.pipe);
-    //gf3d_pipeline_submit_commands(gf3d_mesh.highlight_pipe);
 }
 
 VkCommandBuffer gf3d_mesh_get_model_command_buffer()
@@ -137,18 +190,35 @@ VkCommandBuffer gf3d_mesh_get_model_command_buffer()
     return gf3d_mesh.pipe->commandBuffer;
 }
 
+VkCommandBuffer gf3d_mesh_get_map_command_buffer()
+{
+    if (!gf3d_mesh.map_pipe)return VK_NULL_HANDLE;
+    return gf3d_mesh.map_pipe->commandBuffer;
+}
+
 VkCommandBuffer gf3d_mesh_get_highlight_command_buffer()
 {
-    if (!gf3d_mesh.pipe)return VK_NULL_HANDLE;
+    if (!gf3d_mesh.highlight_pipe)return VK_NULL_HANDLE;
     return gf3d_mesh.highlight_pipe->commandBuffer;
 }
 
 VkCommandBuffer gf3d_mesh_get_sky_command_buffer()
 {
-    if (!gf3d_mesh.pipe)return VK_NULL_HANDLE;
+    if (!gf3d_mesh.sky_pipe)return VK_NULL_HANDLE;
     return gf3d_mesh.sky_pipe->commandBuffer;
 }
 
+VkCommandBuffer gf3d_mesh_get_displacement_command_buffer()
+{
+    if (!gf3d_mesh.displacement_pipe)return VK_NULL_HANDLE;
+    return gf3d_mesh.displacement_pipe->commandBuffer;
+}
+
+VkCommandBuffer gf3d_mesh_get_water_command_buffer()
+{
+    if (!gf3d_mesh.water_pipe)return VK_NULL_HANDLE;
+    return gf3d_mesh.water_pipe->commandBuffer;
+}
 
 VkVertexInputAttributeDescription * gf3d_mesh_get_attribute_descriptions(Uint32 *count)
 {
@@ -265,6 +335,63 @@ void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet 
         return;
     }
     pipe = gf3d_mesh_get_pipeline();
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh->buffer, offsets);
+    
+    vkCmdBindIndexBuffer(commandBuffer, mesh->faceBuffer, 0, VK_INDEX_TYPE_UINT32);
+    
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe->pipelineLayout, 0, 1, descriptorSet, 0, NULL);
+    
+    vkCmdDrawIndexed(commandBuffer, mesh->faceCount * 3, 1, 0, 0, 0);
+}
+
+void gf3d_mesh_render_map(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet)
+{
+    VkDeviceSize offsets[] = {0};
+    Pipeline *pipe;
+    if (!mesh)
+    {
+        slog("cannot render a NULL mesh");
+        return;
+    }
+    pipe = gf3d_mesh_get_map_pipeline();
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh->buffer, offsets);
+    
+    vkCmdBindIndexBuffer(commandBuffer, mesh->faceBuffer, 0, VK_INDEX_TYPE_UINT32);
+    
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe->pipelineLayout, 0, 1, descriptorSet, 0, NULL);
+    
+    vkCmdDrawIndexed(commandBuffer, mesh->faceCount * 3, 1, 0, 0, 0);
+}
+
+void gf3d_mesh_render_displacement(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet)
+{
+    VkDeviceSize offsets[] = {0};
+    Pipeline *pipe;
+    if (!mesh)
+    {
+        slog("cannot render a NULL mesh");
+        return;
+    }
+    pipe = gf3d_mesh_get_displacement_pipeline();
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh->buffer, offsets);
+    
+    vkCmdBindIndexBuffer(commandBuffer, mesh->faceBuffer, 0, VK_INDEX_TYPE_UINT32);
+    
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipe->pipelineLayout, 0, 1, descriptorSet, 0, NULL);
+    
+    vkCmdDrawIndexed(commandBuffer, mesh->faceCount * 3, 1, 0, 0, 0);
+}
+
+void gf3d_mesh_render_water(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet)
+{
+    VkDeviceSize offsets[] = {0};
+    Pipeline *pipe;
+    if (!mesh)
+    {
+        slog("cannot render a NULL mesh");
+        return;
+    }
+    pipe = gf3d_mesh_get_water_pipeline();
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh->buffer, offsets);
     
     vkCmdBindIndexBuffer(commandBuffer, mesh->faceBuffer, 0, VK_INDEX_TYPE_UINT32);

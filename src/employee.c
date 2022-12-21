@@ -15,9 +15,8 @@ uint8_t FocusTimer, FocusSwitch;
 
 void employee_manager_init(){
     for (size_t i = 0; i < EMPLOYEE_MAX; i++){
-        Employees.employee_slots[i].entity = spawn_employee();
         generate_employee_data(&Employees.employee_slots[i]); // generate a random employee
-        Employees.employee_slots[i].type = i % EMPLOYEE_TYPES;
+        Employees.employee_slots[i].entity = spawn_employee(Employees.employee_slots[i].type);
         Employees.employee_slots[i].entity->customData = &Employees.employee_slots[i];
     }
     
@@ -25,8 +24,8 @@ void employee_manager_init(){
     Employees.focused = Employees.employee_slots[0].entity;
     Employees.passive_effect_timer = 600;
     CamFocus = Employees.focused->position;
-    PrevFocus = CamFocus;
-    FocusTimer = 30;
+    PrevFocus = Employees.focused->position;
+    FocusTimer = 10;
     FocusSwitch = 0;
 }
 
@@ -62,7 +61,13 @@ void employee_manager_update(){
         FocusSwitch = 0;
     }
 
-    gf3d_camera_look_at(vector3d(CamFocus.x, CamFocus.y - 25, -6), vector3d(CamFocus.x, CamFocus.y, 0), vector3d(0,1,0));
+    gf3d_camera_look_at(vector3d(CamFocus.x, CamFocus.y - 15, -5), vector3d(CamFocus.x, CamFocus.y, -3), vector3d(0,1,0));
+
+    for(int i = 0; i < EMPLOYEE_MAX; i++){
+        if(Employees.employee_slots[i].entity == NULL){
+            //todo
+        }
+    }
 }
 
 
@@ -115,12 +120,9 @@ void employee_think(Entity* self){
             }
         }
         
-        if((self->position.x > 35 && self->velocity.x > 0) || (self->position.x < -35 && self->velocity.x < 0)){
-            self->velocity.x = -self->velocity.x;
-        }
-
-        if(self->position.y > 50 || self->position.y < -50) {
-            self->velocity.y = -self->velocity.y;
+        if(!gfc_point_in_box(self->position, shop.collision)){
+            self->velocity.x = fmod((float)drand48(), 0.095) - 0.0475;
+            self->velocity.y = fmod((float)drand48(), 0.095) - 0.0475;
         }
     } else {
         if(gfc_input_key_released("f")){
@@ -136,25 +138,23 @@ void employee_think(Entity* self){
 
         }
 
-        if(gfc_input_key_down("s") && self->position.y > -50){
+        if(gfc_input_key_down("s")){
             self->velocity.y = -0.1;
-        } else if(gfc_input_key_down("w") && self->position.y < 50){
+        } else if(gfc_input_key_down("w")){
             self->velocity.y = 0.1;
         } else {
             self->velocity.y = 0;
         }
 
+        if(gfc_input_key_down("d")){
+        self->velocity.x = -0.1;
+        } else if(gfc_input_key_down("a")){
+            self->velocity.x = 0.1;
+        } else {
+            self->velocity.x = 0;
+        }
 
         if(((EmployeeData*)self->customData)->in_dungeon){
-
-            if(gfc_input_key_down("d") && self->position.x > 300 - 35){
-                self->velocity.x = -0.1;
-            } else if(gfc_input_key_down("a") && self->position.x < 335){
-                self->velocity.x = 0.1;
-            } else {
-                self->velocity.x = 0;
-            }
-
             switch (((EmployeeData*)self->customData)->type){
                 case Knight:
                 case CatPerson:
@@ -179,15 +179,33 @@ void employee_think(Entity* self){
                     break;
             }
 
-        } else {
-            if(gfc_input_key_down("d") && self->position.x > -35){
-                self->velocity.x = -0.1;
-            } else if(gfc_input_key_down("a") && self->position.x < 35){
-                self->velocity.x = 0.1;
-            } else {
-                self->velocity.x = 0;
+        }
+    }
+}
+
+void employee_update(Entity* self){
+    if(self != Employees.focused) return;
+
+    Vector3D pos_step;
+    vector3d_add(pos_step, self->position, self->velocity);
+    if(!Employees.employee_slots[Employees.focused_idx].in_dungeon){
+        if(!gfc_point_in_box(pos_step, shop.collision)){
+            self->velocity.x = 0;
+            self->velocity.y = 0;
+        }
+    } else {
+        int in_box = 0; //assume we are never in a bounding box
+        for (size_t i = 0; i < dungeon.walkable_count; i++){
+            if(gfc_point_in_box(pos_step, dungeon.walkable[i])){
+                in_box = 1;
+                break;
             }
         }
+        if(!in_box){
+            self->velocity.x = 0;
+            self->velocity.y = 0; 
+        }
+        
     }
 }
 
@@ -248,6 +266,7 @@ void employee_manager_draw(){
     snprintf(line, sizeof(TextWord), Equipment[data->equipment[EQUIP_LEGS]].name);
     gf2d_font_draw_line_tag(line,FT_H1,gfc_color(1,0.3,0.3,1), vector2d(120, (720 / 2) - 190));
 
+
     if(data->in_dungeon){
         switch (GetCurrentDungeonType())
         {
@@ -268,12 +287,45 @@ void employee_manager_draw(){
 
 }
 
-Entity* spawn_employee(){
+void employee_die(Entity* self){
+    //todo!
+}
+
+Entity* spawn_employee(EmployeeType type){
     Entity* employee_ent = entity_new();
 
-    employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/cube.png");
+
+    switch (type)
+    {
+    case Witch:
+        employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/witch.png");
+        break;
+
+    case Knight:
+        employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/knight.png");
+        break;
+    
+    case Ghost:
+        employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/ghost.png");
+        break;
+
+    case Elf:
+        employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/elf.png");
+        break;
+
+    case CatPerson:
+        employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/catperson.png");
+        break;
+    
+    default:
+        employee_ent->model = gf3d_model_load_full("models/cube.obj", "images/cube.png");
+        break;
+    }
+
     employee_ent->position = vector3d(0,0,0);
     employee_ent->think = employee_think;
+    employee_ent->onDeath = employee_die;
+    employee_ent->update = employee_update;
 
     employee_ent->velocity.x = fmod((float)drand48(), 0.095) - 0.0475;
     employee_ent->velocity.y = fmod((float)drand48(), 0.095) - 0.0475;

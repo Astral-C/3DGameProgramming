@@ -42,8 +42,15 @@ typedef struct
     TextLine                    filename;
     Mesh                    *   mesh;
     Texture                 *   texture;
+    Texture                 *   displacementTexture;
     VkDescriptorSet         *   descriptorSet;
 }Model;
+
+void lighting_init();
+void lighting_set_specular(Vector4D specular);
+void lighting_set_diffuse(Vector4D diffuse);
+void lighting_set_ambient(Vector4D ambient);
+void lighting_set_direction(Vector4D direction);
 
 /**
  * @brief setup the model manager
@@ -89,7 +96,20 @@ Model * gf3d_model_load_from_config(SJson *json);
  * @param colorMod color modulation (values from 0 to 1);
  * @param ambient how much ambient light there is
  */
-void gf3d_model_draw(Model *model,Matrix4 modelMat,Vector4D colorMod,Vector4D ambient);
+void gf3d_model_draw(Model *model,Matrix4 modelMat,Vector4D colorMod,Vector4D ambient,Vector4D texOffset);
+
+void gf3d_model_draw_water(Model *model,Matrix4 modelMat,Vector4D colorMod,Vector4D ambient,Vector4D texOffset);
+
+void gf3d_model_draw_map(Model *model,Matrix4 modelMat, float shininess);
+
+/**
+ * @brief queue up a model for rendering with displacement map
+ * @param model the model to render
+ * @param modelMat the model matrix (MVP)
+ * @param colorMod color modulation (values from 0 to 1);
+ * @param ambient how much ambient light there is
+ */
+void gf3d_model_draw_displacement(Model *model,Matrix4 modelMat,Vector4D colorMod,Vector4D ambient,Vector4D texOffset);
 
 /**
  * @brief queue up a model for rendering as highlight wireframe

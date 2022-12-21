@@ -93,6 +93,7 @@ Entity *entity_new_at(Vector3D spawn_pos)
             
             entity_manager.entity_list[i].color = gfc_color(1,1,1,1);
             entity_manager.entity_list[i].selectedColor = gfc_color(1,1,1,1);
+            entity_manager.entity_list[i].textureAnimationOffset = vector4d(0,0,0,0);
             
             return &entity_manager.entity_list[i];
         }
@@ -114,9 +115,13 @@ void entity_draw(Entity *self)
 {
     if (!self)return;
     if (self->hidden)return;
-    gf3d_model_draw(self->model,self->modelMat,gfc_color_to_vector4f(self->color),vector4d(1,1,1,1));
     if(self->draw != NULL){
         self->draw(self);
+    }
+    if(!self->useDisplacement){
+        gf3d_model_draw(self->model,self->modelMat,gfc_color_to_vector4f(self->color),vector4d(1,1,1,1),self->textureAnimationOffset);
+    } else {
+        gf3d_model_draw_displacement(self->model,self->modelMat,gfc_color_to_vector4f(self->color),vector4d(1,1,1,1),self->textureAnimationOffset);
     }
 }
 
@@ -134,7 +139,7 @@ void entity_draw_all()
 }
 
 int dist_sort(const Entity** self, const Entity** other){
-    return ((*self)->position.y - cameraPos.y) < ((*other)->position.y - cameraPos.y);
+    return (((*self)->position.y - cameraPos.y) < ((*other)->position.y - cameraPos.y)) && ((*self)->drawPriority <= (*other)->drawPriority);
 }
 
 void entity_draw_all_sorted()
@@ -178,6 +183,8 @@ void entity_update(Entity *self)
     if (!self)return;
     // HANDLE ALL COMMON UPDATE STUFF
     
+    if (self->update)self->update(self);
+    
     vector3d_add(self->position,self->position,self->velocity);
     vector3d_add(self->velocity,self->acceleration,self->velocity);
     
@@ -187,7 +194,6 @@ void entity_update(Entity *self)
     gfc_matrix_rotate_by_vector(self->modelMat,self->modelMat,self->rotation);
     gfc_matrix_translate(self->modelMat,self->position);
     
-    if (self->update)self->update(self);
 }
 
 void entity_update_all()

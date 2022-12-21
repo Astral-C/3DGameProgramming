@@ -5,18 +5,20 @@
 #include "gf2d_font.h"
 #include "gfc_input.h"
 #include "hazard.h"
+#include "gf2d_draw.h"
 
 ShopManager shop = {0};
-static DungeonManager dungeon = {0};
+DungeonManager dungeon = {0};
 
 Vector4D TypeColors[3] = {{0.5, 0.65, 0.9, 1.0}, {1.0, 0.65, 0.75, 1.0}, {0.8, 0.75, 0.4, 1.0}};
 Sound* bg_music_shop = NULL;
+Model* box = NULL;
 
 void world_init(){
     //todo
     //shop.walls = gf3d_model_load("walls");
-    shop.floor = gf3d_model_load_full("models/shop.obj", "images/ShopAlbedo.png");
-    dungeon.floor = gf3d_model_load_full("models/floor.obj", "images/ground_03.png");
+    shop.floor = gf3d_model_load_full("models/shop.obj", "images/shoptex.png");
+    box = gf3d_model_load_full("models/point.obj", "images/default.png");
     //shop.molding = gf3d_model_load("floor2");
     gfc_matrix_identity(shop.mat);
     gfc_matrix_identity(dungeon.mat);
@@ -25,17 +27,27 @@ void world_init(){
     shop.fee_timer = 500;
     shop.fees = 150;
 
-    spawn_spike();
-
     bg_music_shop = gfc_sound_load("audio/Caketown1.wav", 0.8, 0);
     gfc_sound_play(bg_music_shop, 1, 0.8, -1, -1);
+
+    shop.collision = gfc_box(-30, -30, -10, 60, 60, 10);
 }
 
 void world_draw(){
     //gf3d_model_draw(shop.walls,shop.mat);
-    gf3d_model_draw(shop.floor,shop.mat, vector4d(1,1,1,1), vector4d(1,1,1,1));
-    gf3d_model_draw(dungeon.floor, dungeon.mat, TypeColors[dungeon.type], vector4d(1,1,1,1));
+    gf3d_model_draw_map(shop.floor,shop.mat,256);
+    //gf3d_model_draw(dungeon.floor, dungeon.mat, TypeColors[dungeon.type], vector4d(1,1,1,1),vector4d(0,0,0,0));
     
+    Matrix4 drawBox;
+    gfc_matrix_identity(drawBox);
+    gfc_matrix_translate(drawBox, vector3d(shop.collision.x, shop.collision.y, shop.collision.z));
+    gf3d_model_draw(box, drawBox, vector4d(1,1,1,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+
+    gfc_matrix_identity(drawBox);
+    gfc_matrix_translate(drawBox, vector3d(shop.collision.x + shop.collision.w, shop.collision.y + shop.collision.h, shop.collision.z + shop.collision.d));
+    gf3d_model_draw(box, drawBox, vector4d(1,1,1,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+
+
     char money[32];
     snprintf(money, sizeof(money), "Shop Money: $%d", shop.cash);
     gf2d_font_draw_line_tag(money,FT_H1,gfc_color(1,1,1,1), vector2d(25, 45));
@@ -147,14 +159,6 @@ void cash_think(Entity* self){
 
 void RandomizeDungeon(){
     dungeon.type = rand() % DUNGEON_TYPE_MAX;
-
-    for (size_t i = 0; i < 15; i++){
-        if(dungeon.items[i] != NULL){
-            entity_free(dungeon.items[i]);
-        }
-
-        dungeon.items[i] = spawn_random_equipment();
-    }
 
     Entity* cash;
     for (size_t i = 0; i < (rand() % 10) + (rand() % (shop.upgrades[LUCKY_DAYS] + 1)); i++){

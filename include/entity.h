@@ -46,7 +46,13 @@ typedef struct Entity_S
     Vector3D    rotation;
     
     Uint32      health;     /**<entity dies when it reaches zero*/
+
+    Vector4D textureAnimationOffset;
+    int useDisplacement;
+    int drawPriority; 
+
     // WHATEVER ELSE WE MIGHT NEED FOR ENTITIES
+
     struct Entity_S *target;    /**<entity to target for weapons / ai*/
     
     void *customData;   /**<IF an entity needs to keep track of extra data, we can do it here*/

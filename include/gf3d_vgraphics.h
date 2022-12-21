@@ -107,6 +107,6 @@ SDL_Surface *gf3d_vgraphics_create_surface(Uint32 w,Uint32 h);
  */
 SDL_Surface *gf3d_vgraphics_screen_convert(SDL_Surface **surface);
 
-SDL_Window *gf3d_vgraphics_get_sdl_window();
+Vector2D gf3d_vgraphics_project(Vector3D point);
 
 #endif

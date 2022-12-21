@@ -195,7 +195,7 @@ void gf3d_vgraphics_init(const char *config)
 
     gf3d_texture_init(1024);
 
-    gf3d_command_system_init(8 * gf3d_swapchain_get_swap_image_count(), gf3d_vgraphics.device);
+    gf3d_command_system_init(16 * gf3d_swapchain_get_swap_image_count(), gf3d_vgraphics.device);
     gf3d_vgraphics.graphicsCommandPool = gf3d_command_graphics_pool_setup(gf3d_swapchain_get_swap_image_count());
 
     gf3d_model_manager_init(1024);
@@ -577,6 +577,17 @@ uint32_t gf3d_vgraphics_find_memory_type(uint32_t typeFilter, VkMemoryPropertyFl
 
     slog("failed to find suitable memory type!");
     return 0;
+}
+
+Vector2D gf3d_vgraphics_project(Vector3D point)
+{
+    Matrix4 project;
+    Vector4D projected;
+    gfc_matrix_multiply(project, gf3d_vgraphics.ubo.model, gf3d_vgraphics.ubo.view);
+    gfc_matrix_multiply(project, project, gf3d_vgraphics.ubo.proj);
+    gfc_matrix_M_multiply_v(&projected, project, vector4d(point.x, point.y, point.z, 1.0f));
+
+    return vector2d(projected.y/projected.w, projected.y/projected.w);
 }
 
 Matrix4 *gf3d_vgraphics_get_view_matrix()

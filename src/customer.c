@@ -1,3 +1,4 @@
+#include <time.h>
 #include "customer.h"
 #include "world.h"
 
@@ -37,7 +38,7 @@ void customer_manager_init(){
 
 void customer_think(Entity* self){
     CustomerData* customer = ((CustomerData*)self->customData);
-    
+
     customer->leave_timer--;
     if(customer->leave_timer <= 0){
         entity_free(self);
@@ -52,7 +53,9 @@ void customer_manager_update(){
     for (size_t i = 0; i < CUSTOMER_MAX; i++){
         if(Customers.customer_slots[i].entity == NULL){
             Customers.customer_slots[i].entity = spawn_customer();
-            
+
+            Customers.customer_slots[i].entity->textureAnimationOffset.z = (rand() % 10 >= 5 ? 1.0f : 0.0f);
+
             Customers.customer_slots[i].payout = rand() % 250;
             Customers.customer_slots[i].type = rand() % CUSTOMER_TYPES;
             Customers.customer_slots[i].want_type = rand() % EMPLOYEE_TYPES;

@@ -14,6 +14,14 @@
         "imgui_impl_vulkan.h": "c",
         "imgui_impl_sdl.h": "c",
         "sg_util.h": "c",
-        "gfc_vector.h": "c"
+        "gfc_vector.h": "c",
+        "hazard.h": "c",
+        "gf3d_commands.h": "c",
+        "gamestate.h": "c",
+        "dungeon_editor.h": "c",
+        "gfc_matrix.h": "c",
+        "gf3d_vgraphics.h": "c",
+        "gfc_primitives.h": "c",
+        "equipment.h": "c"
     }
 }

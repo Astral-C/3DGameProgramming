@@ -7,7 +7,8 @@ typedef enum {
     Zombie,
     Skeleton,
     Slime,
-    Goblin
+    Goblin,
+    ENEMY_TYPE_MAX
 } EnemyType;
 
 typedef struct {
@@ -16,5 +17,8 @@ typedef struct {
     int attack_damage;
     Sphere hitbox;
 } Enemy;
+
+
+void spawn_enemy(EnemyType type);
 
 #endif

@@ -37,6 +37,8 @@ typedef struct {
     uint8_t upgrades[UPGRADES_MAX];
     
     Box collision;
+
+    Vector4D floor_offset;
 } ShopManager;
 
 typedef struct {
@@ -56,6 +58,7 @@ void world_draw();
 void shop_manager_add_cash(int amount);
 
 extern ShopManager shop;
+extern DungeonManager dungeon;
 
 DungeonType GetCurrentDungeonType();
 

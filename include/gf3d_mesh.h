@@ -14,8 +14,20 @@ typedef struct
     Matrix4 proj;
     Vector4D color; //color mod
     Vector4D ambient;
+    Vector4D texoffset;
 }MeshUBO;
 
+typedef struct
+{
+    Matrix4 model;
+    Matrix4 view;
+    Matrix4 proj;
+    Vector4D cameraPos;
+    Vector4D lightDirection;
+    Vector4D lightDiffuse;
+    Vector4D lightAmbient;
+    Vector4D lightSpecular;
+} MapUBO;
 /**
  * @purpose to send to calls to draw via the highlight pipeline
  */
@@ -106,8 +118,11 @@ void gf3d_mesh_submit_pipe_commands();
  * @brief get the current command buffer for the mesh system
  */
 VkCommandBuffer gf3d_mesh_get_model_command_buffer();
+VkCommandBuffer gf3d_mesh_get_map_command_buffer();
 VkCommandBuffer gf3d_mesh_get_highlight_command_buffer();
 VkCommandBuffer gf3d_mesh_get_sky_command_buffer();
+VkCommandBuffer gf3d_mesh_get_displacement_command_buffer();
+VkCommandBuffer gf3d_mesh_get_water_command_buffer();
 
 
 /**
@@ -125,6 +140,9 @@ void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet 
  * @param com the command pool to use to handle the request we are rendering with
  */
 void gf3d_mesh_render(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
+void gf3d_mesh_render_map(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
+void gf3d_mesh_render_water(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
+void gf3d_mesh_render_displacement(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
 void gf3d_mesh_render_highlight(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
 void gf3d_mesh_render_sky(Mesh *mesh,VkCommandBuffer commandBuffer, VkDescriptorSet * descriptorSet);
 
@@ -145,5 +163,8 @@ void gf3d_mesh_create_vertex_buffer_from_vertices(Mesh *mesh,Vertex *vertices,Ui
 Pipeline *gf3d_mesh_get_pipeline();
 Pipeline *gf3d_mesh_get_highlight_pipeline();
 Pipeline *gf3d_mesh_get_sky_pipeline();
+Pipeline *gf3d_mesh_get_displacement_pipeline();
+Pipeline *gf3d_mesh_get_water_pipeline();
+Pipeline *gf3d_mesh_get_map_pipeline();
 
 #endif

@@ -1,0 +1,9 @@
+{
+    "model" : "models/water_dungeon.obj",
+    "texture" : "images/water_dungeon_tex.png",
+    "collision" : [],
+    "enemy_spawns" : [],
+    "hazard_spawns":[],
+    "gem_spawns":[],
+    "equip_spawns":[]
+}

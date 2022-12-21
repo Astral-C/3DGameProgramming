@@ -4,7 +4,8 @@
 typedef enum {
     MainMenu,
     LoadingScreen,
-    Game
+    Game,
+    Editor
 } GameStates;
 
 #endif

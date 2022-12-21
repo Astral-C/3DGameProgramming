@@ -3,6 +3,7 @@
 #include "employee.h"
 
 #define SPIKE_MOVE_MAX 120
+#define PUDDLE_DMG_TIMER 120
 
 void spike_think(Entity* self){
     Spike* spike_data = (Spike*)self->customData;
@@ -15,7 +16,7 @@ void spike_think(Entity* self){
         s.r = 2.0f;
 
         if(gfc_point_in_sphere(Employees.focused->position, s)){
-            printf("spiked!\n");
+            Employees.focused->health-=5;
         }
 
         spike_data->move_dir = -1;
@@ -24,6 +25,10 @@ void spike_think(Entity* self){
     }
 
     spike_data->timer += spike_data->move_dir;
+
+    if(!((EmployeeData*)Employees.focused->customData)->in_dungeon){
+        entity_free(self);
+    }
 }
 
 void spike_draw(Entity* self){
@@ -43,7 +48,8 @@ void spike_draw(Entity* self){
     gfc_matrix_copy(spikePos, self->modelMat);
     gfc_matrix_translate(spikePos, offset_vec);
 
-    gf3d_model_draw(spike_data->animated,spikePos, vector4d(1,1,1,1), vector4d(1,1,1,1));
+    gf3d_model_draw(spike_data->animated,spikePos, vector4d(1,1,1,1), vector4d(1,1,1,1),vector4d(0,0,0,0));
+    
 }
 
 void spike_free(Entity* self){
@@ -54,7 +60,69 @@ void spike_free(Entity* self){
     }
 }
 
-Entity* spawn_spike(){
+void puddle_draw(Entity* self){
+
+    ((Puddle*)self->customData)->water_anim.x += 0.0005f;
+    ((Puddle*)self->customData)->water_anim.y += 0.0005f;
+
+    ((Puddle*)self->customData)->water_anim.z -= 0.0005f;
+    ((Puddle*)self->customData)->water_anim.w += 0.0005f;
+
+    gf3d_model_draw_water(((Puddle*)self->customData)->water_surface, self->modelMat, vector4d(1,1,1,1),vector4d(1,1,1,1),((Puddle*)self->customData)->water_anim);
+    gf3d_model_draw_displacement(((Puddle*)self->customData)->water_basin, self->modelMat, vector4d(0.75,0.8,0.9,1),vector4d(1,1,1,1),((Puddle*)self->customData)->water_anim);
+
+}
+
+void puddle_think(Entity* self){
+    if(((Puddle*)self->customData)->damageTimer-- == 0 && gfc_point_in_box(Employees.focused->position, self->bounds)){
+        Employees.focused->health -= 1;
+        ((Puddle*)self->customData)->damageTimer = PUDDLE_DMG_TIMER;
+    }
+    if(!((EmployeeData*)Employees.focused->customData)->in_dungeon){
+        entity_free(self);
+    }
+}
+
+void puddle_die(Entity* self){
+    gf3d_model_free(((Puddle*)self->customData)->water_surface);
+    gf3d_model_free(((Puddle*)self->customData)->water_basin);
+    gf3d_texture_free(((Puddle*)self->customData)->water_basin->displacementTexture);
+    free(self->customData);
+}
+
+
+void fire_think(Entity* self){
+    self->velocity.x = Employees.focused->position.x - self->position.x;
+    self->velocity.y = Employees.focused->position.y - self->position.y;
+    vector3d_normalize(&self->velocity);
+
+    if(gfc_point_in_sphere(Employees.focused->position, gfc_sphere(self->position.x, self->position.y, self->position.z, 3))){
+        Employees.focused->health-=10;
+    }
+}
+
+Entity* spawn_puddle(Vector3D position){
+    Entity* puddle = entity_new();
+    puddle->model = gf3d_model_load_full("models/water_hazard_rim.obj", "images/dirt.png");
+    puddle->drawPriority = 1;
+    puddle->customData = malloc(sizeof(Puddle));
+    memset(puddle->customData, 0, sizeof(Puddle));
+    ((Puddle*)puddle->customData)->water_surface = gf3d_model_load_full("models/water_hazard_surface.obj", "images/water_overlay.png");
+    ((Puddle*)puddle->customData)->water_basin  = gf3d_model_load_full("models/water_hazard_basin.obj", "images/dirt.png");
+    ((Puddle*)puddle->customData)->water_basin->displacementTexture = gf3d_texture_load("images/astrSS04.png");
+    ((Puddle*)puddle->customData)->damageTimer = PUDDLE_DMG_TIMER;
+    puddle->health = 100;
+
+    puddle->position.z -= 0.5f;
+
+    puddle->think = puddle_think;
+    puddle->draw = puddle_draw;
+    puddle->onDeath = puddle_die;
+
+    return puddle;
+}
+
+Entity* spawn_spike(Vector3D position){
     Entity* spike = entity_new();
     spike->model = gf3d_model_load_full("models/SpikeBase.obj", "images/SpikesBase.png");
 
@@ -69,12 +137,14 @@ Entity* spawn_spike(){
     spike->think = spike_think;
     spike->draw = spike_draw;
     spike->onDeath = spike_free;
+    return spike;
 }
 
-Entity* spawn_puddle(){
 
-}
+Entity* spawn_fire(Vector3D position){
+    Entity* fire = entity_new();
+    fire->model = gf3d_model_load_full("models/cube.obj", "images/fireball.png");
 
-Entity* spawn_fire(){
-
+    fire->think = fire_think;
+    return fire;
 }

@@ -20,7 +20,10 @@ typedef struct {
 } Spike;
 
 typedef struct {
-    int damage;
+    int damageTimer;
+    Model* water_surface;
+    Model* water_basin;
+    Vector4D water_anim;
 } Puddle;
 
 Entity* spawn_spike();

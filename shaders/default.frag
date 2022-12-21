@@ -12,10 +12,8 @@ layout(location = 0) out vec4 outColor;
 
 void main()
 {
-    vec3 lightVector = vec3(0,0,1);
-    float cosTheta = dot( fragNormal,lightVector );
     vec4 baseColor = texture(texSampler, fragTexCoord);
-    outColor = (baseColor * ambient) + baseColor * cosTheta;
+    outColor = baseColor;
     outColor.x = outColor.x * colorMod.x;
     outColor.y = outColor.y * colorMod.y;
     outColor.z = outColor.z * colorMod.z;

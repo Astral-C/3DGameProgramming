@@ -28,16 +28,20 @@ void equipment_think(Entity* self){
         employee->equipment[equipment_def->slot] = equipment_def - Equipment;
         entity_free(self);
     }
+
+    if(!((EmployeeData*)Employees.focused->customData)->in_dungeon){
+        entity_free(self);
+    }
 }
 
 
-Entity* spawn_random_equipment() {
+Entity* spawn_random_equipment(Vector3D position) {
     Entity* equip_ent = entity_new();
 
     equip_ent->model = gf3d_model_new();//gf3d_model_load_full("models/cube.obj", "images/hat.png");
     equip_ent->model->mesh = gf3d_mesh_load("models/cube.obj");
     equip_ent->scale.z = 0.5;
-    equip_ent->position = vector3d(((rand() % 70) - 35) + 300, (rand() % 100) - 50, 0);
+    equip_ent->position = position;
     equip_ent->think = equipment_think;
 
     equip_ent->customData = &Equipment[(rand() % 5) + 1];
