@@ -8,6 +8,20 @@ static EditorMode mode = EM_COLLISION;
 static EnemyType add_enemy_type = Rockman;
 static int add_hazard_type = 0;
 
+// oh my god NO
+
+Model* rockman_model = NULL;
+Model* zombie_model = NULL;
+Model* skeleton_model = NULL;
+Model* slime_model = NULL;
+Model* goblin_model = NULL;
+
+Model* gem_model = NULL;
+
+Model* spike_hazard_model = NULL;
+Model* puddle_hazard_model = NULL;
+Model* fire_hazard_model = NULL;
+
 void click_add(){
     switch (mode)
     {
@@ -114,6 +128,27 @@ void click_dungeon_save(){
 
 void change_editor_mode(){
     mode = (mode + 1) % EDIT_MODE_MAX;
+
+    switch (mode)
+    {
+    case EM_COLLISION:
+        if(editor.current_col_box >= dungeon.walkable_count) editor.current_col_box = 0;
+        break;
+    case EM_ENEMY:
+        if(editor.current_col_box >= editor.enemy_count) editor.current_col_box = 0;
+        break;
+    case EM_GEM:
+        if(editor.current_col_box >= editor.gem_count) editor.current_col_box = 0;
+        break;
+    case EM_HAZARD:
+        if(editor.current_col_box >= editor.hazard_count) editor.current_col_box = 0;
+        break; 
+    case EM_EQUIP:
+        if(editor.current_col_box >= editor.equip_count) editor.current_col_box = 0;
+        break;  
+    default:
+        break;
+    }
 }
 
 void change_enemy_type(){
@@ -130,7 +165,10 @@ void change_hazard_type(){
 
 void dungeon_editor_cleanup(){
     if(dungeon.walkable != NULL) free(dungeon.walkable);
-
+    if(editor.enemies != NULL) free(editor.enemies);
+    if(editor.gem_spawns != NULL) free(editor.gem_spawns);
+    if(editor.hazards != NULL) free(editor.hazards);
+    if(editor.equip_spawns != NULL) free(editor.equip_spawns);
 }
 
 void dungeon_editor_init(char* config_path){
@@ -174,7 +212,7 @@ void dungeon_editor_init(char* config_path){
             SJson* current = sj_array_get_nth(enemy_spawns, i);
             EnemyType type;
             Vector3D pos;
-            sj_get_int_value(sj_object_get_value(current, "type"), &type);
+            sj_get_integer_value(sj_object_get_value(current, "type"), &type);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 0), &pos.x);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 1), &pos.y);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 2), &pos.z);
@@ -190,7 +228,7 @@ void dungeon_editor_init(char* config_path){
             SJson* current = sj_array_get_nth(hazard_spawns, i);
             int type;
             Vector3D pos;
-            sj_get_int_value(sj_object_get_value(current, "type"), &type);
+            sj_get_integer_value(sj_object_get_value(current, "type"), &type);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 0), &pos.x);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 1), &pos.y);
             sj_get_float_value(sj_array_get_nth(sj_object_get_value(current, "position"), 2), &pos.z);
@@ -212,6 +250,18 @@ void dungeon_editor_init(char* config_path){
     }
 
 
+    rockman_model = gf3d_model_load_full("models/cube.obj", "images/rockman.png");
+    zombie_model = gf3d_model_load_full("models/cube.obj", "images/zombie.png");
+    skeleton_model = gf3d_model_load_full("models/cube.obj", "images/skeleton.png");
+    slime_model = gf3d_model_load_full("models/cube.obj", "images/slime.png");
+    goblin_model = gf3d_model_load_full("models/cube.obj", "images/goblin.png");
+
+    gem_model = gf3d_model_load_full("models/gem.obj", "images/gem.png");
+
+    spike_hazard_model = gf3d_model_load_full("models/water_hazard_surface.obj", "images/water_overlay.png");
+    puddle_hazard_model = gf3d_model_load_full("models/water_hazard_rim.obj", "images/dirt.png");
+    fire_hazard_model = gf3d_model_load_full("models/cube.obj", "images/fireball.png");
+
     menu_init(10, NULL, NULL);
     menu_add_button("Add", gfc_rect(0,0,0,0), gfc_color(1,1,1,1), click_add);
     menu_add_button("Remove", gfc_rect(0,100,0,0), gfc_color(1,1,1,1), click_remove);
@@ -226,25 +276,25 @@ void dungeon_editor_update(){
     menu_update();
 
     if(gfc_input_key_pressed("TAB")){
-        editor.current_col_box = (editor.current_col_box + 1) % dungeon.walkable_count;
-    }
+        editor.current_col_box += 1;
 
-    switch (mode)
-    {
-    case EM_COLLISION:
-        if(editor.current_col_box > dungeon.walkable_count) editor.current_col_box = 0;
-        break;
-    case EM_ENEMY:
-        if(editor.current_col_box > editor.enemy_count) editor.current_col_box = 0;
-        break;
-    case EM_GEM:
-        if(editor.current_col_box > editor.gem_count) editor.current_col_box = 0;
-        break;
-    case EM_HAZARD:
-        if(editor.current_col_box > editor.hazard_count) editor.current_col_box = 0;
-        break;   
-    default:
-        break;
+        switch (mode)
+        {
+        case EM_COLLISION:
+            if(editor.current_col_box >= dungeon.walkable_count) editor.current_col_box = 0;
+            break;
+        case EM_ENEMY:
+            if(editor.current_col_box >= editor.enemy_count) editor.current_col_box = 0;
+            break;
+        case EM_GEM:
+            if(editor.current_col_box >= editor.gem_count) editor.current_col_box = 0;
+            break;
+        case EM_HAZARD:
+            if(editor.current_col_box >= editor.hazard_count) editor.current_col_box = 0;
+            break;   
+        default:
+            break;
+        }
     }
 
     if(!gfc_input_key_down("LSHIFT")){
@@ -392,44 +442,91 @@ void dungeon_editor_draw(){
     switch (mode)
     {
     case EM_COLLISION:
-        for (size_t i = 0; i < dungeon.walkable_count; i++){
-            if(editor.current_col_box == i){
-                gfc_matrix_identity(drawBox);
-                gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x, dungeon.walkable[i].y, dungeon.walkable[i].z));
-                gf3d_model_draw(editor.box_model, drawBox, vector4d(0,1,0,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
-
-                gfc_matrix_identity(drawBox);
-                gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x + dungeon.walkable[i].w, dungeon.walkable[i].y + dungeon.walkable[i].h, dungeon.walkable[i].z + dungeon.walkable[i].d));
-                gf3d_model_draw(editor.box_model, drawBox, vector4d(0,1,0,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
-            } else {
-                gfc_matrix_identity(drawBox);
-                gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x, dungeon.walkable[i].y, dungeon.walkable[i].z));
-                gf3d_model_draw(editor.box_model, drawBox, vector4d(1,1,1,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
-
-                gfc_matrix_identity(drawBox);
-                gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x + dungeon.walkable[i].w, dungeon.walkable[i].y + dungeon.walkable[i].h, dungeon.walkable[i].z + dungeon.walkable[i].d));
-                gf3d_model_draw(editor.box_model, drawBox, vector4d(1,1,1,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
-            }
-        }
+        gf2d_font_draw_line_tag("Collision Mode", FT_Normal, gfc_color(1,1,1,1), vector2d(1080, 20));
         break;
 
     case EM_ENEMY:
-        switch (editor.enemies[editor.current_col_box].type)
-        {
-        case Rockman:
-            /* code */
-            break;
-        
-        default:
-            break;
-        }
-        //gf2d_font_draw_line_tag("", FT_Normal,)
+        gf2d_font_draw_line_tag("Enemy Mode", FT_Normal, gfc_color(1,1,1,1), vector2d(1080, 20));
+        break;
 
+    case EM_GEM:
+        gf2d_font_draw_line_tag("Gem Mode", FT_Normal, gfc_color(1,1,1,1), vector2d(1080, 20));
+        break;
+
+    case EM_HAZARD:
+        gf2d_font_draw_line_tag("Hazard Mode", FT_Normal, gfc_color(1,1,1,1), vector2d(1080, 20));
+        break;
+
+    case EM_EQUIP:
+        gf2d_font_draw_line_tag("Equip Spawns Mode", FT_Normal, gfc_color(1,1,1,1), vector2d(1080, 20));
+        break;
     
     default:
         break;
     }
     
+    for (size_t i = 0; i < dungeon.walkable_count; i++){
+        int selected = editor.current_col_box != i && mode != EM_COLLISION;
+        gfc_matrix_identity(drawBox);
+        gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x, dungeon.walkable[i].y, dungeon.walkable[i].z));
+        gf3d_model_draw(editor.box_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+
+        gfc_matrix_identity(drawBox);
+        gfc_matrix_translate(drawBox, vector3d(dungeon.walkable[i].x + dungeon.walkable[i].w, dungeon.walkable[i].y + dungeon.walkable[i].h, dungeon.walkable[i].z + dungeon.walkable[i].d));
+        gf3d_model_draw(editor.box_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+    }
+
+    for (size_t i = 0; i < editor.enemy_count; i++){
+        int selected = editor.current_col_box != i && mode != EM_ENEMY;
+        gfc_matrix_identity(drawBox);
+        gfc_matrix_translate(drawBox, vector3d(editor.enemies[i].position.x, editor.enemies[i].position.y, editor.enemies[i].position.z));
+        switch (editor.enemies[i].type)
+        {
+        case Rockman:
+            gf3d_model_draw(rockman_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+            break;
+        case Skeleton:
+            gf3d_model_draw(skeleton_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+            break;
+        case Zombie:
+            gf3d_model_draw(zombie_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+            break;
+         case Slime:
+            gf3d_model_draw(slime_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+            break;
+        case Goblin:
+            gf3d_model_draw(goblin_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+            break;        
+        default:
+            break;
+        }
+    }
+
+
+    for (size_t i = 0; i < editor.hazard_count; i++){
+        int selected = editor.current_col_box != i && mode != EM_HAZARD;
+        gfc_matrix_identity(drawBox);
+        gfc_matrix_translate(drawBox, vector3d(editor.hazards[i].position.x, editor.hazards[i].position.y,editor.hazards[i].position.z));
+        switch(editor.hazards[i].type){
+            case 0: gf3d_model_draw(spike_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
+            case 1: gf3d_model_draw(puddle_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
+            case 2: gf3d_model_draw(fire_hazard_model, drawBox,  vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1)); break;
+        }
+    }
+
+    for (size_t i = 0; i < editor.gem_count; i++){
+        int selected = editor.current_col_box != i && mode != EM_GEM;
+        gfc_matrix_identity(drawBox);
+        gfc_matrix_translate(drawBox, vector3d(editor.gem_spawns[i].x, editor.gem_spawns[i].y, editor.gem_spawns[i].z));
+        gf3d_model_draw(gem_model, drawBox, vector4d(1*selected,1,1*selected,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+    }
+
+    for (size_t i = 0; i < editor.equip_count; i++){
+        int selected = editor.current_col_box != i && mode != EM_EQUIP;
+        gfc_matrix_identity(drawBox);
+        gfc_matrix_translate(drawBox, vector3d(editor.equip_spawns[i].x, editor.equip_spawns[i].y, editor.equip_spawns[i].z));
+        gf3d_model_draw(editor.box_model, drawBox, vector4d(0,1*selected,0,1), vector4d(1,1,1,1), vector4d(1,1,1,1));
+    }
 
     menu_draw();
 }
